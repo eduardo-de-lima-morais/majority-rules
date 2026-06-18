@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Majority Rules</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #0f0f13;
+    color: #f0f0f0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 520px;
+  }
+
+  .logo {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .logo h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: #fff;
+  }
+
+  .logo p {
+    font-size: 13px;
+    color: #666;
+    margin-top: 4px;
+  }
+
+  .card {
+    background: #1a1a22;
+    border: 1px solid #2a2a35;
+    border-radius: 16px;
+    padding: 32px;
+  }
+
+  .step-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #555;
+    margin-bottom: 12px;
+  }
+
+  .question-text {
+    font-size: 22px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 28px;
+    line-height: 1.3;
+  }
+
+  .options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .opt-btn {
+    background: #0f0f13;
+    border: 1.5px solid #2a2a35;
+    border-radius: 12px;
+    color: #f0f0f0;
+    font-size: 15px;
+    font-weight: 500;
+    padding: 20px 12px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, transform 0.1s;
+    text-align: center;
+  }
+
+  .opt-btn:hover:not(:disabled) {
+    border-color: #7c6af7;
+    background: #1a1630;
+    transform: translateY(-1px);
+  }
+
+  .opt-btn.selected {
+    border-color: #7c6af7;
+    background: #1a1630;
+    color: #a99fff;
+  }
+
+  .opt-btn:disabled {
+    cursor: default;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    background: #0f0f13;
+    border: 1.5px solid #2a2a35;
+    border-radius: 10px;
+    color: #f0f0f0;
+    font-size: 15px;
+    padding: 14px 16px;
+    outline: none;
+    transition: border-color 0.15s;
+    margin-bottom: 16px;
+  }
+
+  input[type="text"]:focus {
+    border-color: #7c6af7;
+  }
+
+  input[type="text"]::placeholder { color: #444; }
+
+  .btn-primary {
+    width: 100%;
+    background: #7c6af7;
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 14px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background: #6a58e0;
+    transform: translateY(-1px);
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.4;
+    cursor: default;
+    transform: none;
+  }
+
+  .result-box {
+    background: #0f0f13;
+    border: 1px solid #2a2a35;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .result-label {
+    font-size: 12px;
+    color: #555;
+    margin-bottom: 8px;
+  }
+
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .bar-label {
+    font-size: 13px;
+    color: #aaa;
+    width: 90px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .bar-track {
+    flex: 1;
+    height: 8px;
+    background: #1a1a22;
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: #7c6af7;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .bar-fill.majority { background: #4ade80; }
+
+  .bar-count {
+    font-size: 13px;
+    color: #666;
+    width: 20px;
+    text-align: right;
+  }
+
+  .verdict {
+    margin-top: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    padding: 10px;
+    border-radius: 8px;
+  }
+
+  .verdict.win {
+    background: #0d2818;
+    color: #4ade80;
+    border: 1px solid #1a4a2a;
+  }
+
+  .verdict.lose {
+    background: #1f0d0d;
+    color: #f87171;
+    border: 1px solid #3a1a1a;
+  }
+
+  .progress {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 24px;
+  }
+
+  .progress-dot {
+    flex: 1;
+    height: 3px;
+    border-radius: 99px;
+    background: #2a2a35;
+    transition: background 0.3s;
+  }
+
+  .progress-dot.done { background: #7c6af7; }
+  .progress-dot.current { background: #a99fff; }
+
+  .ranking-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .rank-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #0f0f13;
+    border: 1px solid #2a2a35;
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+
+  .rank-item.first {
+    border-color: #7c6af7;
+    background: #1a1630;
+  }
+
+  .rank-pos {
+    font-size: 18px;
+    font-weight: 700;
+    color: #444;
+    width: 28px;
+    text-align: center;
+  }
+
+  .rank-item.first .rank-pos { color: #a99fff; }
+
+  .rank-name {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 500;
+    color: #f0f0f0;
+  }
+
+  .rank-score {
+    font-size: 13px;
+    color: #666;
+  }
+
+  .rank-item.first .rank-score { color: #a99fff; }
+
+  .msg { text-align: center; color: #555; font-size: 14px; padding: 20px 0; }
+
+  .majority-tag {
+    display: inline-block;
+    background: #0d2818;
+    color: #4ade80;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 99px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  /* Config URL */
+  #config-screen { display: block; }
+  #login-screen  { display: none; }
+  #game-screen   { display: none; }
+  #result-screen { display: none; }
+  #ranking-screen{ display: none; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="logo">
+    <h1>Majority Rules</h1>
+    <p>Adivinhe o que a maioria vai escolher</p>
+  </div>
+
+  <!-- Tela 0: configurar URL do Apps Script -->
+  <div id="config-screen" class="card">
+    <div class="step-label">Configuração</div>
+    <div class="question-text" style="font-size:17px">Cole a URL do Apps Script</div>
+    <input type="text" id="script-url" placeholder="https://script.google.com/macros/s/..." />
+    <button class="btn-primary" onclick="saveUrl()">Entrar no jogo</button>
+    <p style="font-size:12px; color:#444; margin-top:14px; text-align:center">
+      Cada jogador cola a mesma URL recebida pelo host
+    </p>
+  </div>
+
+  <!-- Tela 1: login -->
+  <div id="login-screen" class="card">
+    <div class="step-label">Boas vindas</div>
+    <div class="question-text" style="font-size:17px">Qual é o seu nome?</div>
+    <input type="text" id="player-name" placeholder="Seu nome..." maxlength="30" />
+    <button class="btn-primary" onclick="startGame()">Entrar</button>
+  </div>
+
+  <!-- Tela 2: jogo -->
+  <div id="game-screen" class="card">
+    <div class="progress" id="progress-dots"></div>
+    <div class="step-label" id="q-counter">Pergunta 1 de 5</div>
+    <div class="question-text" id="q-text"></div>
+    <div class="options">
+      <button class="opt-btn" id="btn-a" onclick="selectOption('a')"></button>
+      <button class="opt-btn" id="btn-b" onclick="selectOption('b')"></button>
+    </div>
+    <button class="btn-primary" id="btn-vote" onclick="submitVote()" disabled>Votar</button>
+  </div>
+
+  <!-- Tela 3: resultado da pergunta -->
+  <div id="result-screen" class="card">
+    <div class="step-label" id="r-counter"></div>
+    <div class="question-text" id="r-text" style="font-size:16px; margin-bottom:20px"></div>
+    <div class="result-box">
+      <div class="result-label">Votos até agora</div>
+      <div class="bar-row">
+        <div class="bar-label" id="r-label-a"></div>
+        <div class="bar-track"><div class="bar-fill" id="r-bar-a" style="width:0%"></div></div>
+        <div class="bar-count" id="r-count-a">0</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label" id="r-label-b"></div>
+        <div class="bar-track"><div class="bar-fill" id="r-bar-b" style="width:0%"></div></div>
+        <div class="bar-count" id="r-count-b">0</div>
+      </div>
+    </div>
+    <div class="verdict" id="r-verdict"></div>
+    <button class="btn-primary" id="btn-next" onclick="nextQuestion()" style="margin-top:20px">Próxima pergunta →</button>
+  </div>
+
+  <!-- Tela 4: ranking final -->
+  <div id="ranking-screen" class="card">
+    <div class="step-label">Resultado final</div>
+    <div class="question-text" style="font-size:20px; margin-bottom:24px">Ranking</div>
+    <div class="ranking-list" id="ranking-list"></div>
+    <button class="btn-primary" onclick="resetGame()" style="margin-top:24px">Jogar novamente</button>
+  </div>
+
+</div>
+
+<script>
+  let SCRIPT_URL = '';
+  let QUESTIONS = [];
+  let playerName = '';
+  let currentQ = 0;
+  let selectedOption = null;
+  let myAnswers = [];
+
+  function show(id) {
+    ['config-screen','login-screen','game-screen','result-screen','ranking-screen']
+      .forEach(s => document.getElementById(s).style.display = 'none');
+    document.getElementById(id).style.display = 'block';
+  }
+
+  function saveUrl() {
+    const url = document.getElementById('script-url').value.trim();
+    if (!url.startsWith('https://script.google.com')) {
+      alert('URL inválida. Verifique e tente novamente.');
+      return;
+    }
+    SCRIPT_URL = url;
+    loadQuestions();
+  }
+
+  async function api(params) {
+    const qs = new URLSearchParams(params).toString();
+    const res = await fetch(SCRIPT_URL + '?' + qs);
+    return res.json();
+  }
+
+  async function loadQuestions() {
+    try {
+      const data = await api({ action: 'getQuestions' });
+      QUESTIONS = data.questions;
+      show('login-screen');
+    } catch(e) {
+      alert('Não consegui conectar. Verifique a URL do Apps Script.');
+    }
+  }
+
+  function startGame() {
+    const name = document.getElementById('player-name').value.trim();
+    if (!name) return;
+    playerName = name;
+    currentQ = 0;
+    myAnswers = [];
+    renderProgressDots();
+    showQuestion();
+    show('game-screen');
+  }
+
+  function renderProgressDots() {
+    const el = document.getElementById('progress-dots');
+    el.innerHTML = QUESTIONS.map((_, i) =>
+      `<div class="progress-dot" id="dot-${i}"></div>`
+    ).join('');
+  }
+
+  function updateDots() {
+    QUESTIONS.forEach((_, i) => {
+      const dot = document.getElementById('dot-' + i);
+      dot.className = 'progress-dot' +
+        (i < currentQ ? ' done' : i === currentQ ? ' current' : '');
+    });
+  }
+
+  function showQuestion() {
+    const q = QUESTIONS[currentQ];
+    document.getElementById('q-counter').textContent =
+      `Pergunta ${currentQ + 1} de ${QUESTIONS.length}`;
+    document.getElementById('q-text').textContent = q.text;
+    document.getElementById('btn-a').textContent = q.a;
+    document.getElementById('btn-b').textContent = q.b;
+    document.getElementById('btn-a').className = 'opt-btn';
+    document.getElementById('btn-b').className = 'opt-btn';
+    document.getElementById('btn-a').disabled = false;
+    document.getElementById('btn-b').disabled = false;
+    document.getElementById('btn-vote').disabled = true;
+    selectedOption = null;
+    updateDots();
+  }
+
+  function selectOption(opt) {
+    selectedOption = opt;
+    document.getElementById('btn-a').className = 'opt-btn' + (opt === 'a' ? ' selected' : '');
+    document.getElementById('btn-b').className = 'opt-btn' + (opt === 'b' ? ' selected' : '');
+    document.getElementById('btn-vote').disabled = false;
+  }
+
+  async function submitVote() {
+    if (!selectedOption) return;
+    const q = QUESTIONS[currentQ];
+    const answer = selectedOption === 'a' ? q.a : q.b;
+
+    document.getElementById('btn-vote').disabled = true;
+    document.getElementById('btn-a').disabled = true;
+    document.getElementById('btn-b').disabled = true;
+
+    myAnswers.push({ qId: q.id, answer });
+
+    try {
+      await api({ action: 'vote', player: playerName, question: q.id, answer });
+    } catch(e) {}
+
+    showResult(q, answer);
+  }
+
+  async function showResult(q, myAnswer) {
+    let data;
+    try {
+      data = await api({ action: 'getResults', question: q.id });
+    } catch(e) {
+      data = { ok: false };
+    }
+
+    document.getElementById('r-counter').textContent =
+      `Pergunta ${currentQ + 1} de ${QUESTIONS.length}`;
+    document.getElementById('r-text').textContent = q.text;
+
+    const labelA = document.getElementById('r-label-a');
+    const labelB = document.getElementById('r-label-b');
+    const barA   = document.getElementById('r-bar-a');
+    const barB   = document.getElementById('r-bar-b');
+    const cntA   = document.getElementById('r-count-a');
+    const cntB   = document.getElementById('r-count-b');
+
+    labelA.innerHTML = q.a + (data.majority === q.a ? '<span class="majority-tag">maioria</span>' : '');
+    labelB.innerHTML = q.b + (data.majority === q.b ? '<span class="majority-tag">maioria</span>' : '');
+
+    const total = data.total || 1;
+    const pA = Math.round((data.a.count / total) * 100);
+    const pB = Math.round((data.b.count / total) * 100);
+
+    setTimeout(() => {
+      barA.style.width = pA + '%';
+      barB.style.width = pB + '%';
+      barA.className = 'bar-fill' + (data.majority === q.a ? ' majority' : '');
+      barB.className = 'bar-fill' + (data.majority === q.b ? ' majority' : '');
+    }, 50);
+
+    cntA.textContent = data.a.count;
+    cntB.textContent = data.b.count;
+
+    const verdict = document.getElementById('r-verdict');
+    const win = myAnswer === data.majority;
+    verdict.className = 'verdict ' + (win ? 'win' : 'lose');
+    verdict.textContent = win
+      ? '✓ Você acertou a maioria!'
+      : `✗ Você escolheu diferente da maioria (${data.majority})`;
+
+    const isLast = currentQ === QUESTIONS.length - 1;
+    document.getElementById('btn-next').textContent = isLast ? 'Ver ranking final →' : 'Próxima pergunta →';
+
+    show('result-screen');
+  }
+
+  async function nextQuestion() {
+    currentQ++;
+    if (currentQ >= QUESTIONS.length) {
+      await showRanking();
+    } else {
+      showQuestion();
+      show('game-screen');
+    }
+  }
+
+  async function showRanking() {
+    let data;
+    try {
+      data = await api({ action: 'getRanking' });
+    } catch(e) {
+      data = { ok: false, ranking: [] };
+    }
+
+    const list = document.getElementById('ranking-list');
+    if (!data.ranking || data.ranking.length === 0) {
+      list.innerHTML = '<div class="msg">Nenhum dado ainda.</div>';
+    } else {
+      const medals = ['🥇', '🥈', '🥉'];
+      list.innerHTML = data.ranking.map((p, i) => `
+        <div class="rank-item ${i === 0 ? 'first' : ''}">
+          <div class="rank-pos">${medals[i] || (i + 1)}</div>
+          <div class="rank-name">${p.name}</div>
+          <div class="rank-score">${p.score} / ${data.total}</div>
+        </div>
+      `).join('');
+    }
+
+    show('ranking-screen');
+  }
+
+  async function resetGame() {
+    currentQ = 0;
+    myAnswers = [];
+    playerName = '';
+    document.getElementById('player-name').value = '';
+    show('login-screen');
+  }
+</script>
+</body>
+</html>
