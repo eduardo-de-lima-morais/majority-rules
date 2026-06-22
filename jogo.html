@@ -259,7 +259,7 @@
   <div class="logo">
     <h1>Majority Rules</h1>
     <p>Adivinhe o que a maioria vai escolher</p>
-    <p style="font-size:11px; color:#333; margin-top:2px">v0.1.3</p>
+    <p style="font-size:11px; color:#333; margin-top:2px">v0.1.4</p>
   </div>
 
   <!-- 0: URL do Apps Script -->
@@ -602,6 +602,7 @@ function showQuestion() {
   document.getElementById('btn-a').disabled  = false;
   document.getElementById('btn-b').disabled  = false;
   document.getElementById('btn-vote').disabled = true;
+  document.getElementById('btn-vote').textContent = 'Votar';
   selectedOption = null;
   updateDots();
 
@@ -624,6 +625,7 @@ function selectOption(opt) {
 // ── Master ticker — controla timer e avanço de tela ──
 const answeredQs = new Set(); // perguntas já respondidas nesta sessão
 let masterTicker = null;
+let showingResult = false; // bloqueia avanço automático durante tela de resultado
 
 function startMasterTicker() {
   clearInterval(masterTicker);
@@ -636,8 +638,8 @@ function tickGame() {
   const qStart     = timerStartEpoch + qIdx * timerSeconds * 1000;
   const remaining  = Math.max(0, timerSeconds - Math.floor((now - qStart) / 1000));
 
-  // Avançou para próxima pergunta pelo clock
-  if (qIdx > currentQ) {
+  // Avançou para próxima pergunta pelo clock — só avança se não estiver mostrando resultado
+  if (qIdx > currentQ && !showingResult) {
     currentQ = qIdx;
     answeredQs.add(qIdx - 1);
     window._pendingAnswer = null;
@@ -647,7 +649,7 @@ function tickGame() {
   }
 
   // Fim de jogo pelo clock
-  if (now >= timerStartEpoch + QUESTIONS.length * timerSeconds * 1000) {
+  if (now >= timerStartEpoch + QUESTIONS.length * timerSeconds * 1000 && !showingResult) {
     clearInterval(masterTicker);
     showRanking();
     return;
@@ -710,6 +712,8 @@ function autoSubmit() {
 }
 
 async function onTimeUp(q, answer) {
+  showingResult = true; // bloqueia tickGame de avançar
+
   // Mostra tela de espera enquanto aguarda
   show('result-screen');
   document.getElementById('r-counter').textContent = `Pergunta ${currentQ + 1} de ${QUESTIONS.length}`;
@@ -724,7 +728,7 @@ async function onTimeUp(q, answer) {
   document.getElementById('r-verdict').textContent = 'Apurando votos...';
   document.getElementById('r-voters-wrap').innerHTML = '';
 
-  // Aguarda 2s para todos os votos chegarem
+  // Aguarda 2s para todos os votos chegarem ao servidor
   await new Promise(r => setTimeout(r, 2000));
 
   // Busca resultado + ranking numa chamada só
@@ -735,6 +739,10 @@ async function onTimeUp(q, answer) {
   } catch(e) {}
 
   showResultScreen(q, answer, data);
+
+  // Aguarda 8s mostrando resultado, depois libera o tickGame
+  await new Promise(r => setTimeout(r, 8000));
+  showingResult = false;
 }
 
 async function submitVote() {
