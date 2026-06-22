@@ -259,7 +259,7 @@
   <div class="logo">
     <h1>Majority Rules</h1>
     <p>Adivinhe o que a maioria vai escolher</p>
-    <p style="font-size:11px; color:#333; margin-top:2px">v0.1.6</p>
+    <p style="font-size:11px; color:#333; margin-top:2px">v0.1.7</p>
   </div>
 
   <!-- 0: URL do Apps Script -->
@@ -637,37 +637,36 @@ const RESULT_SECS = 8; // segundos de tela de resultado (fixo)
 function slotSize() { return timerSeconds + RESULT_SECS; }
 
 function tickGame() {
-  const now      = Date.now();
-  const elapsed  = (now - timerStartEpoch) / 1000;
-  const slot     = slotSize();
+  const now     = Date.now();
+  const elapsed = (now - timerStartEpoch) / 1000;
+  const slot    = slotSize(); // timerSeconds + 8
 
-  // Qual pergunta deveria estar ativa agora pelo clock
-  const qIdx     = Math.min(Math.floor(elapsed / slot), QUESTIONS.length - 1);
-  const qStart   = timerStartEpoch + qIdx * slot * 1000;
-  const inSlot   = (now - qStart) / 1000;          // segundos dentro do slot atual
-  const voting   = inSlot < timerSeconds;           // ainda na fase de votação
-  const result   = inSlot >= timerSeconds && inSlot < slot; // fase de resultado
+  // Posição dentro do slot da pergunta atual
+  const qStart = timerStartEpoch + currentQ * slot * 1000;
+  const inSlot = (now - qStart) / 1000;
+  const voting = inSlot >= 0 && inSlot < timerSeconds;
+  const result = inSlot >= timerSeconds && inSlot < slot;
+  const over   = inSlot >= slot;
 
-  // Avançou de pergunta pelo clock
-  if (qIdx > currentQ) {
-    currentQ = qIdx;
-    answeredQs.add(qIdx - 1);
+  // Fim de todas as perguntas
+  if (elapsed >= QUESTIONS.length * slot) {
+    if (!showingResult) { clearInterval(masterTicker); showRanking(); }
+    return;
+  }
+
+  if (over && !showingResult) {
+    // Slot acabou — avança para próxima pergunta
+    answeredQs.add(currentQ);
+    currentQ++;
     window._pendingAnswer = null;
-    showingResult = false;
+    if (currentQ >= QUESTIONS.length) { clearInterval(masterTicker); showRanking(); return; }
     showQuestion();
     show('game-screen');
     return;
   }
 
-  // Fim de todas as perguntas
-  if (elapsed >= QUESTIONS.length * slot) {
-    clearInterval(masterTicker);
-    showRanking();
-    return;
-  }
-
   if (voting) {
-    // Fase de votação — atualiza timer
+    showingResult = false;
     const remaining = Math.max(0, timerSeconds - Math.floor(inSlot));
     const gameScreen = document.getElementById('game-screen');
     if (gameScreen && gameScreen.style.display !== 'none') {
@@ -676,17 +675,16 @@ function tickGame() {
     if (remaining <= 0 && !answeredQs.has(currentQ)) {
       autoSubmit();
     }
-    showingResult = false;
   } else if (result && !showingResult) {
-    // Entrou na fase de resultado — dispara onTimeUp uma única vez
+    // Entrou na janela de resultado — dispara onTimeUp uma única vez
     showingResult = true;
     const q      = QUESTIONS[currentQ];
     const myAns  = (myAnswers.find(a => a.qId === q.id) || {}).answer || null;
     onTimeUp(q, myAns);
   }
 
-  // Atualiza countdown na result-screen
-  if (result) {
+  // Countdown na result-screen
+  if (result && showingResult) {
     const secsLeft = Math.ceil(slot - inSlot);
     const cd = document.getElementById('result-countdown');
     if (cd) cd.textContent = `Próxima pergunta em ${secsLeft}s`;
