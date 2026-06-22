@@ -259,7 +259,7 @@
   <div class="logo">
     <h1>Majority Rules</h1>
     <p>Adivinhe o que a maioria vai escolher</p>
-    <p style="font-size:11px; color:#333; margin-top:2px">v0.0.6</p>
+    <p style="font-size:11px; color:#333; margin-top:2px">v0.0.7</p>
   </div>
 
   <!-- 0: URL do Apps Script -->
@@ -875,15 +875,20 @@ async function adminStart() {
   adminTimerSeconds = parseInt(document.getElementById('admin-seconds').value) || 30;
   adminCurrentQ = 0;
 
+  const btn = document.querySelector('#admin-setup-area .btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = 'Iniciando...'; }
+
   let serverEpoch = null;
   try {
-    // Servidor define o epoch — sem depender do clock do cliente
     const resp = await api({ action: 'startGame', timerSeconds: adminTimerSeconds });
-    serverEpoch = resp.startEpoch || null;
-  } catch(e) {}
+    // startEpoch vem do servidor — momento exato em que foi gravado
+    serverEpoch = resp.startEpoch ? parseFloat(resp.startEpoch) : Date.now();
+  } catch(e) {
+    serverEpoch = Date.now();
+  }
 
-  // Admin sincroniza seu próprio timer com o epoch do servidor
-  timerStartEpoch = serverEpoch || Date.now();
+  // Ambos admin e jogadores usam exatamente este epoch
+  timerStartEpoch = serverEpoch;
   timerSeconds    = adminTimerSeconds;
 
   document.getElementById('admin-setup-area').style.display  = 'none';
