@@ -259,7 +259,7 @@
   <div class="logo">
     <h1>Majority Rules</h1>
     <p>Adivinhe o que a maioria vai escolher</p>
-    <p style="font-size:11px; color:#333; margin-top:2px">v0.0.9</p>
+    <p style="font-size:11px; color:#333; margin-top:2px">v0.1.1</p>
   </div>
 
   <!-- 0: URL do Apps Script -->
@@ -389,7 +389,7 @@
         <input type="number" id="admin-seconds" value="30" min="5" max="120" style="width:80px; margin-bottom:0" />
       </div>
       <button class="btn-primary" onclick="adminStart()">▶ Iniciar Jogo</button>
-      <button class="btn-danger" onclick="adminReset()" style="margin-top:10px">🗑 Resetar Jogo (limpa todos os dados)</button>
+      <button class="btn-danger" id="btn-reset" onclick="adminReset()" style="margin-top:10px">🗑 Resetar Jogo (limpa todos os dados)</button>
     </div>
 
     <div id="admin-running-area" style="display:none">
@@ -570,12 +570,14 @@ function waitForGame() {
 function startGamePlayer() {
   currentQ   = 0;
   myAnswers  = [];
+  answeredQs.clear();
   renderProgressDots();
   // Calcula qual pergunta está ativa agora com base no clock
   const elapsed = Math.floor((Date.now() - timerStartEpoch) / 1000);
   currentQ = Math.min(Math.floor(elapsed / timerSeconds), QUESTIONS.length - 1);
   showQuestion();
   show('game-screen');
+  startMasterTicker(); // inicia o ticker único que controla tudo
 }
 
 function renderProgressDots() {
@@ -623,23 +625,59 @@ function selectOption(opt) {
   document.getElementById('btn-vote').disabled = false;
 }
 
-// ── Timer visual (player) ──
-// Usa setInterval de 200ms verificando o clock real para não derivar
+// ── Master ticker — controla timer e avanço de tela ──
 const answeredQs = new Set(); // perguntas já respondidas nesta sessão
+let masterTicker = null;
+
+function startMasterTicker() {
+  clearInterval(masterTicker);
+  masterTicker = setInterval(tickGame, 200);
+}
+
+function tickGame() {
+  const now        = Date.now();
+  const qIdx       = Math.min(Math.floor((now - timerStartEpoch) / (timerSeconds * 1000)), QUESTIONS.length - 1);
+  const qStart     = timerStartEpoch + qIdx * timerSeconds * 1000;
+  const remaining  = Math.max(0, timerSeconds - Math.floor((now - qStart) / 1000));
+
+  // Avançou para próxima pergunta pelo clock
+  if (qIdx > currentQ) {
+    currentQ = qIdx;
+    answeredQs.add(qIdx - 1); // garante que pergunta anterior marcada
+    showQuestion();
+    show('game-screen');
+    return;
+  }
+
+  // Fim de jogo pelo clock
+  if (now >= timerStartEpoch + QUESTIONS.length * timerSeconds * 1000) {
+    clearInterval(masterTicker);
+    showRanking();
+    return;
+  }
+
+  // Atualiza timer visual se estiver na game-screen
+  const gameScreen = document.getElementById('game-screen');
+  if (gameScreen && gameScreen.style.display !== 'none') {
+    renderTimerPlayer(remaining);
+    if (remaining <= 0 && !answeredQs.has(currentQ)) {
+      autoSubmit();
+    }
+  }
+
+  // Atualiza countdown na result-screen
+  const resultScreen = document.getElementById('result-screen');
+  if (resultScreen && resultScreen.style.display !== 'none') {
+    const nextSlot = timerStartEpoch + (qIdx + 1) * timerSeconds * 1000;
+    const secsLeft = Math.ceil((nextSlot - now) / 1000);
+    const cd = document.getElementById('result-countdown');
+    if (cd) cd.textContent = secsLeft > 0 ? `Próxima pergunta em ${secsLeft}s` : '';
+  }
+}
 
 function startTimer(initialSeconds, qStartEpoch) {
-  clearInterval(timerInterval);
+  // mantido por compatibilidade — master ticker já cuida de tudo
   renderTimerPlayer(initialSeconds);
-
-  timerInterval = setInterval(() => {
-    const elapsed    = Math.floor((Date.now() - qStartEpoch) / 1000);
-    const remaining  = Math.max(0, timerSeconds - elapsed);
-    renderTimerPlayer(remaining);
-    if (remaining <= 0) {
-      clearInterval(timerInterval);
-      if (!answeredQs.has(currentQ)) autoSubmit();
-    }
-  }, 200);
 }
 
 function renderTimerPlayer(s) {
@@ -673,7 +711,6 @@ function autoSubmit() {
 async function submitVote() {
   if (!selectedOption || answeredQs.has(currentQ)) return;
   answeredQs.add(currentQ);
-  clearInterval(timerInterval);
 
   const q      = QUESTIONS[currentQ];
   const answer = selectedOption === 'a' ? q.a : q.b;
@@ -777,37 +814,10 @@ async function showResultScreen(q, myAnswer) {
 }
 
 function waitForNextSlot(isLast) {
+  // Master ticker já cuida de avançar automaticamente.
+  // Apenas esconde o botão manual.
   const btn = document.getElementById('btn-next');
-  btn.style.display = 'none'; // jogador não pode avançar manualmente
-
-  clearInterval(timerInterval);
-
-  if (isLast) {
-    // Última pergunta: aguarda 6s fixos e vai pro ranking
-    setTimeout(() => showRanking(), 6000);
-    return;
-  }
-
-  // Calcula quando começa o próximo slot
-  const nextQStartEpoch = timerStartEpoch + (currentQ + 1) * timerSeconds * 1000;
-
-  timerInterval = setInterval(() => {
-    const now = Date.now();
-    const secsLeft = Math.ceil((nextQStartEpoch - now) / 1000);
-
-    // Atualiza countdown no botão (escondido mas serve de ref)
-    if (secsLeft > 0) {
-      const cd = document.getElementById('result-countdown');
-      if (cd) cd.textContent = `Próxima pergunta em ${secsLeft}s`;
-    }
-
-    if (now >= nextQStartEpoch) {
-      clearInterval(timerInterval);
-      currentQ++;
-      showQuestion();
-      show('game-screen');
-    }
-  }, 200);
+  if (btn) btn.style.display = 'none';
 }
 
 async function nextQuestion() {
@@ -979,6 +989,15 @@ async function adminEnd() {
 
 async function adminReset() {
   if (!confirm('Isso vai apagar todos os votos e resetar o jogo. Confirmar?')) return;
+
+  const btn = document.getElementById('btn-reset');
+  const startBtn = document.querySelector('#admin-setup-area .btn-primary');
+
+  // Bloqueia tudo durante o reset
+  btn.disabled = true;
+  btn.textContent = '⏳ Resetando...';
+  if (startBtn) startBtn.disabled = true;
+
   try {
     await api({ action: 'reset' });
     document.getElementById('admin-status-info').textContent =
@@ -986,9 +1005,13 @@ async function adminReset() {
     document.getElementById('admin-running-area').style.display = 'none';
     document.getElementById('admin-setup-area').style.display   = 'block';
     clearInterval(adminTimerInterval);
-    alert('Jogo resetado com sucesso!');
+    btn.textContent = '🗑 Resetar Jogo (limpa todos os dados)';
   } catch(e) {
+    btn.textContent = '🗑 Resetar Jogo (limpa todos os dados)';
     alert('Erro ao resetar.');
+  } finally {
+    btn.disabled = false;
+    if (startBtn) startBtn.disabled = false;
   }
 }
 
