@@ -259,17 +259,17 @@
   <div class="logo">
     <h1>Majority Rules</h1>
     <p>Adivinhe o que a maioria vai escolher</p>
-    <p style="font-size:11px; color:#333; margin-top:2px">v0.1.7</p>
+    <p style="font-size:11px; color:#333; margin-top:2px">v0.1.9</p>
   </div>
 
   <!-- 0: URL do Apps Script -->
   <div id="config-screen" class="card">
     <div class="step-label">Configuração</div>
     <div class="question-text" style="font-size:17px">Cole a URL do Apps Script</div>
-    <input type="text" id="script-url" placeholder="https://script.google.com/macros/s/..." />
+    <input type="text" id="script-url" placeholder="https://script.google.com/macros/s/... (vazio = modo demo)" />
     <button class="btn-primary" onclick="saveUrl()">Continuar</button>
     <p style="font-size:12px; color:#444; margin-top:14px; text-align:center">
-      Cada jogador usa a mesma URL do host
+      Deixe vazio para modo demo (sem backend)
     </p>
   </div>
 
@@ -453,9 +453,37 @@ function show(id) {
 }
 
 async function api(params) {
+  if (!SCRIPT_URL) return mockApi(params);
   const qs = new URLSearchParams(params).toString();
   const res = await fetch(SCRIPT_URL + '?' + qs);
   return res.json();
+}
+
+// ── Mock para modo demo (sem backend) ──
+function mockApi(params) {
+  const action = params.action;
+  if (action === 'validateCode') {
+    if (params.code === 'admin') return Promise.resolve({ ok: true, role: 'admin' });
+    return Promise.resolve({ ok: true, role: 'guest' });
+  }
+  if (action === 'getQuestions') return Promise.resolve({ ok: true, questions: QUESTIONS.length ? QUESTIONS : [
+    { id:1, text:'Vim ou VS Code?',          a:'Vim',       b:'VS Code'    },
+    { id:2, text:'Star Wars ou Star Trek?',  a:'Star Wars', b:'Star Trek'  },
+    { id:3, text:'Café ou energético?',       a:'Café',      b:'Energético' },
+  ]});
+  if (action === 'registerPlayer') return Promise.resolve({ ok: true });
+  if (action === 'getGameState')   return Promise.resolve({ ok: true, started: true,
+    timerSeconds: 10, startEpoch: Date.now(), questions: QUESTIONS });
+  if (action === 'startGame')      return Promise.resolve({ ok: true, startEpoch: Date.now(), timerSeconds: parseInt(params.timerSeconds)||30 });
+  if (action === 'vote')           return Promise.resolve({ ok: true });
+  if (action === 'getResultsAndRanking') return Promise.resolve({
+    ok: true, total: 1,
+    a: { label: 'A', count: 1 }, b: { label: 'B', count: 0 },
+    majority: 'A', voters: [{ name: playerName, avatar: playerAvatar, answer: 'A' }],
+    ranking: [{ name: playerName, avatar: playerAvatar, score: 1 }], totalQ: 3
+  });
+  if (action === 'reset')          return Promise.resolve({ ok: true });
+  return Promise.resolve({ ok: true });
 }
 
 // ═══════════════════════════════════════════════
@@ -463,6 +491,12 @@ async function api(params) {
 // ═══════════════════════════════════════════════
 function saveUrl() {
   const url = document.getElementById('script-url').value.trim();
+  if (url === '') {
+    // Modo demo — sem backend, usa dados mockados
+    SCRIPT_URL = '';
+    show('login-screen');
+    return;
+  }
   if (!url.startsWith('https://script.google.com')) {
     alert('URL inválida. Verifique e tente novamente.');
     return;
@@ -654,8 +688,9 @@ function tickGame() {
     return;
   }
 
-  if (over && !showingResult) {
-    // Slot acabou — avança para próxima pergunta
+  if (over) {
+    // Slot acabou (timerSeconds + 8s) — avança para próxima pergunta
+    showingResult = false;
     answeredQs.add(currentQ);
     currentQ++;
     window._pendingAnswer = null;
