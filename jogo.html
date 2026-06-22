@@ -259,6 +259,7 @@
   <div class="logo">
     <h1>Majority Rules</h1>
     <p>Adivinhe o que a maioria vai escolher</p>
+    <p style="font-size:11px; color:#333; margin-top:2px">v0.0.6</p>
   </div>
 
   <!-- 0: URL do Apps Script -->
@@ -770,29 +771,42 @@ async function showResultScreen(q, myAnswer) {
       </div>
     </div>`;
 
-  // Countdown de 5s antes de avançar automaticamente
+    // Aguarda o próximo slot de tempo baseado no clock do servidor
   const isLast = currentQ === QUESTIONS.length - 1;
-  startResultCountdown(isLast ? 8 : 5, isLast);
+  waitForNextSlot(isLast);
 }
 
-function startResultCountdown(seconds, isLast) {
+function waitForNextSlot(isLast) {
   const btn = document.getElementById('btn-next');
-  let s = seconds;
-  btn.textContent = isLast ? `Ver ranking em ${s}s` : `Próxima em ${s}s`;
-  btn.disabled = false;
+  btn.style.display = 'none'; // jogador não pode avançar manualmente
 
-  const cd = setInterval(() => {
-    s--;
-    if (s <= 0) {
-      clearInterval(cd);
-      nextQuestion();
+  clearInterval(timerInterval);
+
+  if (isLast) {
+    // Última pergunta: aguarda 6s fixos e vai pro ranking
+    setTimeout(() => showRanking(), 6000);
+    return;
+  }
+
+  // Calcula quando começa o próximo slot
+  const nextQStartEpoch = timerStartEpoch + (currentQ + 1) * timerSeconds * 1000;
+
+  timerInterval = setInterval(() => {
+    const now = Date.now();
+    if (now >= nextQStartEpoch) {
+      clearInterval(timerInterval);
+      currentQ++;
+      btn.style.display = 'block';
+      showQuestion();
+      show('game-screen');
     } else {
-      btn.textContent = isLast ? `Ver ranking em ${s}s` : `Próxima em ${s}s`;
+      // Mostra contagem regressiva até próxima pergunta
+      const secsLeft = Math.ceil((nextQStartEpoch - now) / 1000);
+      btn.style.display = 'none';
+      document.getElementById('r-verdict') && 
+        (document.getElementById('r-verdict').style.marginBottom = '0');
     }
-  }, 1000);
-
-  // Permite avançar manualmente também
-  btn.onclick = () => { clearInterval(cd); nextQuestion(); };
+  }, 200);
 }
 
 async function nextQuestion() {
