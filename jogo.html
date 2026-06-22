@@ -545,14 +545,19 @@ function waitForGame() {
   waitInterval = setInterval(async () => {
     try {
       const data = await api({ action: 'getGameState' });
-      if (data.started) {
+      document.getElementById('waiting-players-info').textContent =
+        data.started ? 'Iniciando...' : 'Aguardando host...';
+
+      if (data.started && !data.ended) {
         clearInterval(waitInterval);
-        QUESTIONS     = data.questions || QUESTIONS;
-        timerSeconds  = data.timerSeconds;
-        timerStartEpoch = data.startEpoch; // ms epoch do servidor
+        QUESTIONS       = (data.questions && data.questions.length) ? data.questions : QUESTIONS;
+        timerSeconds    = parseInt(data.timerSeconds) || 30;
+        timerStartEpoch = parseFloat(data.startEpoch) || Date.now();
         startGamePlayer();
       }
-    } catch(e) {}
+    } catch(e) {
+      document.getElementById('waiting-players-info').textContent = 'Reconectando...';
+    }
   }, 3000);
 }
 
