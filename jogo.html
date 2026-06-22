@@ -259,7 +259,7 @@
   <div class="logo">
     <h1>Majority Rules</h1>
     <p>Adivinhe o que a maioria vai escolher</p>
-    <p style="font-size:11px; color:#333; margin-top:2px">v0.2.3</p>
+    <p style="font-size:11px; color:#333; margin-top:2px">v0.2.4</p>
   </div>
 
   <!-- 0: URL do Apps Script -->
@@ -601,6 +601,8 @@ function startGamePlayer() {
   currentQ   = 0;
   myAnswers  = [];
   answeredQs.clear();
+  showingResult = false;
+  advancing = false;
   renderProgressDots();
   // Calcula qual pergunta está ativa agora com base no clock (slot = timerSeconds + 8s)
   const elapsed = Math.floor((Date.now() - timerStartEpoch) / 1000);
@@ -626,6 +628,7 @@ function updateDots() {
 }
 
 function showQuestion() {
+  advancing = false; // reset ao iniciar nova pergunta
   const q = QUESTIONS[currentQ];
   document.getElementById('q-counter').textContent = `Pergunta ${currentQ + 1} de ${QUESTIONS.length}`;
   document.getElementById('q-text').textContent    = q.text;
@@ -659,7 +662,8 @@ function selectOption(opt) {
 // ── Master ticker — controla timer e avanço de tela ──
 const answeredQs = new Set(); // perguntas já respondidas nesta sessão
 let masterTicker = null;
-let showingResult = false; // bloqueia avanço automático durante tela de resultado
+let showingResult = false;
+let advancing = false; // garante que avança só uma vez por slot
 
 function startMasterTicker() {
   clearInterval(masterTicker);
@@ -689,14 +693,20 @@ function tickGame() {
   }
 
   if (over) {
-    // Slot acabou (timerSeconds + 8s) — avança para próxima pergunta
+    if (advancing) return; // já está avançando, ignora
+    advancing = true;
     showingResult = false;
     answeredQs.add(currentQ);
     currentQ++;
     window._pendingAnswer = null;
-    if (currentQ >= QUESTIONS.length) { clearInterval(masterTicker); showRanking(); return; }
+    if (currentQ >= QUESTIONS.length) {
+      clearInterval(masterTicker);
+      showRanking();
+      return;
+    }
     showQuestion();
     show('game-screen');
+    advancing = false;
     return;
   }
 
