@@ -259,7 +259,7 @@
   <div class="logo">
     <h1>Majority Rules</h1>
     <p>Adivinhe o que a maioria vai escolher</p>
-    <p style="font-size:11px; color:#333; margin-top:2px">v0.1.1</p>
+    <p style="font-size:11px; color:#333; margin-top:2px">v0.1.3</p>
   </div>
 
   <!-- 0: URL do Apps Script -->
@@ -403,10 +403,6 @@
           </svg>
           <div class="timer-num" id="admin-timer-num">30</div>
         </div>
-      </div>
-      <div class="btn-row" style="margin-bottom:10px">
-        <button class="btn-ghost" id="btn-pause" onclick="adminPause()">⏸ Pausar</button>
-        <button class="btn-primary" onclick="adminNextQ()" id="btn-admin-next">Próxima →</button>
       </div>
       <button class="btn-danger" onclick="adminEnd()">⏹ Encerrar Jogo</button>
     </div>
@@ -643,7 +639,8 @@ function tickGame() {
   // Avançou para próxima pergunta pelo clock
   if (qIdx > currentQ) {
     currentQ = qIdx;
-    answeredQs.add(qIdx - 1); // garante que pergunta anterior marcada
+    answeredQs.add(qIdx - 1);
+    window._pendingAnswer = null;
     showQuestion();
     show('game-screen');
     return;
@@ -701,11 +698,43 @@ function autoSubmit() {
   const answer = selectedOption === 'a' ? q.a : selectedOption === 'b' ? q.b : null;
 
   myAnswers.push({ qId: q.id, answer });
-  if (answer) {
+
+  if (answer && !window._pendingAnswer) {
+    // Usuário não tinha clicado ainda — envia voto agora
     api({ action: 'vote', player: playerName, avatar: playerAvatar, question: q.id, answer }).catch(() => {});
   }
 
-  showResultScreen(q, answer);
+  window._pendingAnswer = null;
+  // Aguarda 2s para votos chegarem ao servidor, depois busca resultado
+  onTimeUp(q, answer);
+}
+
+async function onTimeUp(q, answer) {
+  // Mostra tela de espera enquanto aguarda
+  show('result-screen');
+  document.getElementById('r-counter').textContent = `Pergunta ${currentQ + 1} de ${QUESTIONS.length}`;
+  document.getElementById('r-text').textContent    = q.text;
+  document.getElementById('r-label-a').innerHTML   = q.a;
+  document.getElementById('r-label-b').innerHTML   = q.b;
+  document.getElementById('r-count-a').textContent = '...';
+  document.getElementById('r-count-b').textContent = '...';
+  document.getElementById('r-bar-a').style.width   = '0%';
+  document.getElementById('r-bar-b').style.width   = '0%';
+  document.getElementById('r-verdict').className   = 'verdict';
+  document.getElementById('r-verdict').textContent = 'Apurando votos...';
+  document.getElementById('r-voters-wrap').innerHTML = '';
+
+  // Aguarda 2s para todos os votos chegarem
+  await new Promise(r => setTimeout(r, 2000));
+
+  // Busca resultado + ranking numa chamada só
+  let data = null;
+  try {
+    data = await api({ action: 'getResultsAndRanking', question: q.id });
+    resultCache[q.id] = data;
+  } catch(e) {}
+
+  showResultScreen(q, answer, data);
 }
 
 async function submitVote() {
@@ -718,42 +747,35 @@ async function submitVote() {
   document.getElementById('btn-vote').disabled = true;
   document.getElementById('btn-a').disabled = true;
   document.getElementById('btn-b').disabled = true;
+  document.getElementById('btn-vote').textContent = '✓ Voto registrado!';
 
   myAnswers.push({ qId: q.id, answer });
+
+  // Envia voto imediatamente — sem esperar resultado
   try {
     await api({ action: 'vote', player: playerName, avatar: playerAvatar, question: q.id, answer });
   } catch(e) {}
 
-  showResultScreen(q, answer);
+  // Guarda resposta local para usar quando o tempo acabar
+  window._pendingAnswer = { q, answer };
 }
 
 // ═══════════════════════════════════════════════
 // RESULTADO + VOTERS — tela única, avança automático
 // ═══════════════════════════════════════════════
-async function showResultScreen(q, myAnswer) {
-  // Monta tela de resultado imediatamente com dados locais
-  document.getElementById('r-counter').textContent = `Pergunta ${currentQ + 1} de ${QUESTIONS.length}`;
-  document.getElementById('r-text').textContent    = q.text;
-  document.getElementById('r-label-a').innerHTML   = q.a;
-  document.getElementById('r-label-b').innerHTML   = q.b;
-  document.getElementById('r-count-a').textContent = '...';
-  document.getElementById('r-count-b').textContent = '...';
-  document.getElementById('r-bar-a').style.width   = '0%';
-  document.getElementById('r-bar-b').style.width   = '0%';
-  document.getElementById('r-verdict').className   = 'verdict';
-  document.getElementById('r-verdict').textContent = 'Aguardando votos...';
-  document.getElementById('r-voters-wrap').innerHTML = '';
-
-  show('result-screen');
-
-  // Busca resultado do servidor
-  let data;
+async function voteAndShow(q, answer) {
+  // Uma única chamada: salva voto e retorna resultado + ranking
+  let data = null;
   try {
-    data = await api({ action: 'getResults', question: q.id });
+    data = await api({ action: 'vote', player: playerName, avatar: playerAvatar, question: q.id, answer });
     resultCache[q.id] = data;
-  } catch(e) {
-    data = null;
-  }
+    if (data.ranking) resultCache['__ranking__'] = { ranking: data.ranking, total: data.totalQ };
+  } catch(e) {}
+  showResultScreen(q, answer, data);
+}
+
+function showResultScreen(q, myAnswer, data) {
+  show('result-screen');
 
   // Atualiza barras
   const total = data?.total || 1;
@@ -792,6 +814,7 @@ async function showResultScreen(q, myAnswer) {
   // Voters inline
   const votersA = (data?.voters || []).filter(v => v.answer === q.a);
   const votersB = (data?.voters || []).filter(v => v.answer === q.b);
+  // Voters
   document.getElementById('r-voters-wrap').innerHTML = `
     <div class="voters-cols" style="margin-top:14px">
       <div class="voters-col">
@@ -806,11 +829,29 @@ async function showResultScreen(q, myAnswer) {
           ? votersB.map(v => `<div class="voter-chip"><span class="voter-avatar">${v.avatar}</span>${v.name}</div>`).join('')
           : '<div style="font-size:12px;color:#444;padding:4px 0">Ninguém</div>'}
       </div>
-    </div>`;
+    </div>
+    ${renderMiniRanking(data)}`;
 
-    // Aguarda o próximo slot de tempo baseado no clock do servidor
   const isLast = currentQ === QUESTIONS.length - 1;
   waitForNextSlot(isLast);
+}
+
+function renderMiniRanking(data) {
+  const ranking = data?.ranking || resultCache['__ranking__']?.ranking;
+  if (!ranking || ranking.length === 0) return '';
+  const medals = ['🥇','🥈','🥉'];
+  const rows = ranking.slice(0, 5).map((p, i) =>
+    `<div class="rank-item ${i===0?'first':''}">
+      <div class="rank-pos">${medals[i] || (i+1)}</div>
+      <div class="rank-avatar">${p.avatar||'❓'}</div>
+      <div class="rank-name">${p.name}</div>
+      <div class="rank-score">${p.score} / ${data?.totalQ || QUESTIONS.length}</div>
+    </div>`
+  ).join('');
+  return `<div style="margin-top:16px">
+    <div class="result-label" style="margin-bottom:8px">Ranking parcial</div>
+    <div class="ranking-list">${rows}</div>
+  </div>`;
 }
 
 function waitForNextSlot(isLast) {
