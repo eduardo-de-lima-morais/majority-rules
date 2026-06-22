@@ -259,7 +259,7 @@
   <div class="logo">
     <h1>Majority Rules</h1>
     <p>Adivinhe o que a maioria vai escolher</p>
-    <p style="font-size:11px; color:#333; margin-top:2px">v0.0.7</p>
+    <p style="font-size:11px; color:#333; margin-top:2px">v0.0.9</p>
   </div>
 
   <!-- 0: URL do Apps Script -->
@@ -278,7 +278,7 @@
     <div class="step-label">Acesso</div>
     <div class="question-text" style="font-size:17px">Qual é o seu nome e código?</div>
     <input type="text" id="player-name" placeholder="Seu nome..." maxlength="30" />
-    <input type="text" id="access-code" placeholder="Código de acesso..." maxlength="20" />
+    <input type="text" id="access-code" placeholder="Código de acesso (opcional)..." maxlength="20" />
     <div id="login-error" class="error-msg"></div>
     <button class="btn-primary" onclick="doLogin()">Entrar</button>
   </div>
@@ -361,7 +361,7 @@
     </div>
     <div class="verdict" id="r-verdict"></div>
     <div id="r-voters-wrap"></div>
-    <button class="btn-primary" id="btn-next" style="margin-top:20px">Próxima em 5s</button>
+    <div id="result-countdown" style="text-align:center; font-size:13px; color:#555; margin-top:16px"></div>
   </div>
 
   <!-- 7: ranking final -->
@@ -605,7 +605,6 @@ function showQuestion() {
   document.getElementById('btn-b').disabled  = false;
   document.getElementById('btn-vote').disabled = true;
   selectedOption = null;
-  alreadyVoted   = false;
   updateDots();
 
   // Calcula tempo restante exato baseado no clock do servidor
@@ -617,7 +616,7 @@ function showQuestion() {
 }
 
 function selectOption(opt) {
-  if (alreadyVoted) return;
+  if (answeredQs.has(currentQ)) return;
   selectedOption = opt;
   document.getElementById('btn-a').className = 'opt-btn' + (opt === 'a' ? ' selected' : '');
   document.getElementById('btn-b').className = 'opt-btn' + (opt === 'b' ? ' selected' : '');
@@ -626,7 +625,7 @@ function selectOption(opt) {
 
 // ── Timer visual (player) ──
 // Usa setInterval de 200ms verificando o clock real para não derivar
-let alreadyVoted = false;
+const answeredQs = new Set(); // perguntas já respondidas nesta sessão
 
 function startTimer(initialSeconds, qStartEpoch) {
   clearInterval(timerInterval);
@@ -638,7 +637,7 @@ function startTimer(initialSeconds, qStartEpoch) {
     renderTimerPlayer(remaining);
     if (remaining <= 0) {
       clearInterval(timerInterval);
-      if (!alreadyVoted) autoSubmit();
+      if (!answeredQs.has(currentQ)) autoSubmit();
     }
   }, 200);
 }
@@ -654,7 +653,8 @@ function renderTimerPlayer(s) {
 }
 
 function autoSubmit() {
-  alreadyVoted = true;
+  if (answeredQs.has(currentQ)) return;
+  answeredQs.add(currentQ);
   document.getElementById('btn-a').disabled = true;
   document.getElementById('btn-b').disabled = true;
   document.getElementById('btn-vote').disabled = true;
@@ -671,8 +671,8 @@ function autoSubmit() {
 }
 
 async function submitVote() {
-  if (!selectedOption || alreadyVoted) return;
-  alreadyVoted = true;
+  if (!selectedOption || answeredQs.has(currentQ)) return;
+  answeredQs.add(currentQ);
   clearInterval(timerInterval);
 
   const q      = QUESTIONS[currentQ];
@@ -793,18 +793,19 @@ function waitForNextSlot(isLast) {
 
   timerInterval = setInterval(() => {
     const now = Date.now();
+    const secsLeft = Math.ceil((nextQStartEpoch - now) / 1000);
+
+    // Atualiza countdown no botão (escondido mas serve de ref)
+    if (secsLeft > 0) {
+      const cd = document.getElementById('result-countdown');
+      if (cd) cd.textContent = `Próxima pergunta em ${secsLeft}s`;
+    }
+
     if (now >= nextQStartEpoch) {
       clearInterval(timerInterval);
       currentQ++;
-      btn.style.display = 'block';
       showQuestion();
       show('game-screen');
-    } else {
-      // Mostra contagem regressiva até próxima pergunta
-      const secsLeft = Math.ceil((nextQStartEpoch - now) / 1000);
-      btn.style.display = 'none';
-      document.getElementById('r-verdict') && 
-        (document.getElementById('r-verdict').style.marginBottom = '0');
     }
   }, 200);
 }
@@ -855,6 +856,7 @@ async function resetGame() {
   playerAvatar= '';
   isAdmin     = false;
   resultCache = {};
+  answeredQs.clear();
   document.getElementById('player-name').value  = '';
   document.getElementById('access-code').value  = '';
   document.getElementById('login-error').textContent = '';
