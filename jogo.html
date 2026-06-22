@@ -259,7 +259,7 @@
   <div class="logo">
     <h1>Majority Rules</h1>
     <p>Adivinhe o que a maioria vai escolher</p>
-    <p style="font-size:11px; color:#333; margin-top:2px">v0.2.2</p>
+    <p style="font-size:11px; color:#333; margin-top:2px">v0.2.3</p>
   </div>
 
   <!-- 0: URL do Apps Script -->
@@ -1012,20 +1012,27 @@ function adminRunTimer(serverEpoch) {
   adminPaused = false;
   updateAdminQStatus();
 
-  // Usa o epoch do servidor para calcular tempo restante desta pergunta
-  const qStartEpoch = (serverEpoch || timerStartEpoch) + adminCurrentQ * adminTimerSeconds * 1000;
-
+  const slot = adminTimerSeconds + 8; // mesmo slotSize() dos jogadores
   clearInterval(adminTimerInterval);
+
   adminTimerInterval = setInterval(() => {
     if (adminPaused) return;
-    const elapsed   = Math.floor((Date.now() - qStartEpoch) / 1000);
-    const remaining = Math.max(0, adminTimerSeconds - elapsed);
+    const epoch   = serverEpoch || timerStartEpoch;
+    const qStart  = epoch + adminCurrentQ * slot * 1000;
+    const inSlot  = Math.floor((Date.now() - qStart) / 1000);
+    const remaining = Math.max(0, adminTimerSeconds - inSlot);
     renderAdminTimer(remaining);
-    if (remaining <= 0) {
+
+    // Avança quando slot inteiro acabou (timerSeconds + 8s)
+    if (inSlot >= slot) {
       clearInterval(adminTimerInterval);
-      setTimeout(() => {
-        if (adminCurrentQ < QUESTIONS.length - 1) adminNextQ();
-      }, 3000);
+      adminCurrentQ++;
+      if (adminCurrentQ < QUESTIONS.length) {
+        updateAdminQStatus();
+        adminRunTimer(serverEpoch);
+      } else {
+        document.getElementById('admin-status-info').textContent = 'Jogo finalizado!';
+      }
     }
   }, 200);
 }
