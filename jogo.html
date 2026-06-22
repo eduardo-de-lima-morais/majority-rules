@@ -259,7 +259,7 @@
   <div class="logo">
     <h1>Majority Rules</h1>
     <p>Adivinhe o que a maioria vai escolher</p>
-    <p style="font-size:11px; color:#333; margin-top:2px">v0.1.9</p>
+    <p style="font-size:11px; color:#333; margin-top:2px">v0.2.2</p>
   </div>
 
   <!-- 0: URL do Apps Script -->
@@ -602,9 +602,9 @@ function startGamePlayer() {
   myAnswers  = [];
   answeredQs.clear();
   renderProgressDots();
-  // Calcula qual pergunta está ativa agora com base no clock
+  // Calcula qual pergunta está ativa agora com base no clock (slot = timerSeconds + 8s)
   const elapsed = Math.floor((Date.now() - timerStartEpoch) / 1000);
-  currentQ = Math.min(Math.floor(elapsed / timerSeconds), QUESTIONS.length - 1);
+  currentQ = Math.min(Math.floor(elapsed / slotSize()), QUESTIONS.length - 1);
   showQuestion();
   show('game-screen');
   startMasterTicker(); // inicia o ticker único que controla tudo
@@ -777,8 +777,10 @@ async function onTimeUp(q, answer) {
   document.getElementById('r-verdict').textContent = 'Apurando votos...';
   document.getElementById('r-voters-wrap').innerHTML = '';
 
-  // Aguarda 2s para todos os votos chegarem ao servidor
-  await new Promise(r => setTimeout(r, 2000));
+  // Aguarda 2s para todos os votos chegarem + jitter aleatório (0-1s)
+  // para distribuir as 18 chamadas e não estourar limite de execuções simultâneas
+  const jitter = Math.random() * 2000;
+  await new Promise(r => setTimeout(r, 1000 + jitter));
 
   // Busca resultado + ranking numa chamada só
   let data = null;
