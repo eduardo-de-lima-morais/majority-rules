@@ -18,28 +18,11 @@
     padding: 24px;
   }
 
-  .container {
-    width: 100%;
-    max-width: 520px;
-  }
+  .container { width: 100%; max-width: 560px; }
 
-  .logo {
-    text-align: center;
-    margin-bottom: 40px;
-  }
-
-  .logo h1 {
-    font-size: 28px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-    color: #fff;
-  }
-
-  .logo p {
-    font-size: 13px;
-    color: #666;
-    margin-top: 4px;
-  }
+  .logo { text-align: center; margin-bottom: 32px; }
+  .logo h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; color: #fff; }
+  .logo p  { font-size: 13px; color: #555; margin-top: 4px; }
 
   .card {
     background: #1a1a22;
@@ -49,59 +32,17 @@
   }
 
   .step-label {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: #555;
-    margin-bottom: 12px;
+    font-size: 11px; font-weight: 600; letter-spacing: 1.5px;
+    text-transform: uppercase; color: #555; margin-bottom: 12px;
   }
 
   .question-text {
-    font-size: 22px;
-    font-weight: 600;
-    color: #fff;
-    margin-bottom: 28px;
-    line-height: 1.3;
+    font-size: 22px; font-weight: 600; color: #fff;
+    margin-bottom: 28px; line-height: 1.3;
   }
 
-  .options {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 24px;
-  }
-
-  .opt-btn {
-    background: #0f0f13;
-    border: 1.5px solid #2a2a35;
-    border-radius: 12px;
-    color: #f0f0f0;
-    font-size: 15px;
-    font-weight: 500;
-    padding: 20px 12px;
-    cursor: pointer;
-    transition: border-color 0.15s, background 0.15s, transform 0.1s;
-    text-align: center;
-  }
-
-  .opt-btn:hover:not(:disabled) {
-    border-color: #7c6af7;
-    background: #1a1630;
-    transform: translateY(-1px);
-  }
-
-  .opt-btn.selected {
-    border-color: #7c6af7;
-    background: #1a1630;
-    color: #a99fff;
-  }
-
-  .opt-btn:disabled {
-    cursor: default;
-  }
-
-  input[type="text"] {
+  /* ── inputs ── */
+  input[type="text"], input[type="number"] {
     width: 100%;
     background: #0f0f13;
     border: 1.5px solid #2a2a35;
@@ -110,202 +51,209 @@
     font-size: 15px;
     padding: 14px 16px;
     outline: none;
-    transition: border-color 0.15s;
-    margin-bottom: 16px;
+    transition: border-color .15s;
+    margin-bottom: 14px;
   }
+  input:focus { border-color: #7c6af7; }
+  input::placeholder { color: #444; }
 
-  input[type="text"]:focus {
-    border-color: #7c6af7;
-  }
-
-  input[type="text"]::placeholder { color: #444; }
-
+  /* ── buttons ── */
   .btn-primary {
-    width: 100%;
-    background: #7c6af7;
-    border: none;
-    border-radius: 10px;
-    color: #fff;
-    font-size: 15px;
-    font-weight: 600;
-    padding: 14px;
-    cursor: pointer;
-    transition: background 0.15s, transform 0.1s;
+    width: 100%; background: #7c6af7; border: none;
+    border-radius: 10px; color: #fff; font-size: 15px;
+    font-weight: 600; padding: 14px; cursor: pointer;
+    transition: background .15s, transform .1s;
   }
+  .btn-primary:hover:not(:disabled) { background: #6a58e0; transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: .4; cursor: default; transform: none; }
 
-  .btn-primary:hover:not(:disabled) {
-    background: #6a58e0;
-    transform: translateY(-1px);
+  .btn-ghost {
+    width: 100%; background: transparent;
+    border: 1.5px solid #2a2a35; border-radius: 10px;
+    color: #aaa; font-size: 14px; font-weight: 500;
+    padding: 12px; cursor: pointer; transition: border-color .15s, color .15s;
+    margin-top: 10px;
   }
+  .btn-ghost:hover { border-color: #7c6af7; color: #a99fff; }
 
-  .btn-primary:disabled {
-    opacity: 0.4;
-    cursor: default;
-    transform: none;
+  .btn-danger {
+    width: 100%; background: #7f1d1d; border: none;
+    border-radius: 10px; color: #fca5a5; font-size: 14px;
+    font-weight: 600; padding: 12px; cursor: pointer;
+    transition: background .15s; margin-top: 10px;
   }
+  .btn-danger:hover { background: #991b1b; }
 
-  .result-box {
-    background: #0f0f13;
-    border: 1px solid #2a2a35;
-    border-radius: 12px;
-    padding: 20px;
+  /* ── avatar picker ── */
+  .avatar-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
     margin-bottom: 20px;
   }
-
-  .result-label {
-    font-size: 12px;
-    color: #555;
-    margin-bottom: 8px;
-  }
-
-  .bar-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
-  }
-
-  .bar-label {
-    font-size: 13px;
-    color: #aaa;
-    width: 90px;
-    flex-shrink: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .bar-track {
-    flex: 1;
-    height: 8px;
-    background: #1a1a22;
-    border-radius: 99px;
-    overflow: hidden;
-  }
-
-  .bar-fill {
-    height: 100%;
-    border-radius: 99px;
-    background: #7c6af7;
-    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .bar-fill.majority { background: #4ade80; }
-
-  .bar-count {
-    font-size: 13px;
-    color: #666;
-    width: 20px;
-    text-align: right;
-  }
-
-  .verdict {
-    margin-top: 12px;
-    font-size: 14px;
-    font-weight: 600;
+  .avatar-opt {
+    font-size: 26px;
     text-align: center;
-    padding: 10px;
-    border-radius: 8px;
+    padding: 10px 4px;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background: #0f0f13;
+    cursor: pointer;
+    transition: border-color .15s, transform .1s;
   }
+  .avatar-opt:hover { transform: scale(1.15); }
+  .avatar-opt.picked { border-color: #7c6af7; background: #1a1630; }
 
-  .verdict.win {
-    background: #0d2818;
-    color: #4ade80;
-    border: 1px solid #1a4a2a;
+  /* ── option buttons ── */
+  .options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+  .opt-btn {
+    background: #0f0f13; border: 1.5px solid #2a2a35;
+    border-radius: 12px; color: #f0f0f0; font-size: 15px;
+    font-weight: 500; padding: 20px 12px; cursor: pointer;
+    transition: border-color .15s, background .15s, transform .1s; text-align: center;
   }
+  .opt-btn:hover:not(:disabled) { border-color: #7c6af7; background: #1a1630; transform: translateY(-1px); }
+  .opt-btn.selected { border-color: #7c6af7; background: #1a1630; color: #a99fff; }
+  .opt-btn:disabled { cursor: default; }
 
-  .verdict.lose {
-    background: #1f0d0d;
-    color: #f87171;
-    border: 1px solid #3a1a1a;
+  /* ── timer ── */
+  .timer-wrap { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+  .timer-circle {
+    position: relative; width: 72px; height: 72px;
   }
-
-  .progress {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 24px;
+  .timer-circle svg { transform: rotate(-90deg); }
+  .timer-circle svg circle { fill: none; stroke-width: 5; }
+  .timer-bg  { stroke: #2a2a35; }
+  .timer-arc { stroke: #7c6af7; stroke-linecap: round; transition: stroke-dashoffset .9s linear, stroke .5s; }
+  .timer-arc.urgent { stroke: #f87171; }
+  .timer-num {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 700; color: #fff;
   }
+  .timer-num.urgent { color: #f87171; }
 
-  .progress-dot {
-    flex: 1;
-    height: 3px;
-    border-radius: 99px;
-    background: #2a2a35;
-    transition: background 0.3s;
-  }
-
-  .progress-dot.done { background: #7c6af7; }
+  /* ── progress dots ── */
+  .progress { display: flex; gap: 6px; margin-bottom: 24px; }
+  .progress-dot { flex: 1; height: 3px; border-radius: 99px; background: #2a2a35; transition: background .3s; }
+  .progress-dot.done    { background: #7c6af7; }
   .progress-dot.current { background: #a99fff; }
 
-  .ranking-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+  /* ── result bars ── */
+  .result-box {
+    background: #0f0f13; border: 1px solid #2a2a35;
+    border-radius: 12px; padding: 20px; margin-bottom: 20px;
   }
+  .result-label { font-size: 12px; color: #555; margin-bottom: 10px; }
+  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .bar-label { font-size: 13px; color: #aaa; width: 90px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-track { flex: 1; height: 8px; background: #1a1a22; border-radius: 99px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 99px; background: #7c6af7; transition: width .6s cubic-bezier(.4,0,.2,1); }
+  .bar-fill.majority { background: #4ade80; }
+  .bar-count { font-size: 13px; color: #666; width: 20px; text-align: right; }
 
-  .rank-item {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    background: #0f0f13;
-    border: 1px solid #2a2a35;
-    border-radius: 10px;
-    padding: 14px 16px;
+  /* ── voters display ── */
+  .voters-section { margin-top: 12px; }
+  .voters-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+  .voters-col { background: #0f0f13; border: 1px solid #2a2a35; border-radius: 10px; padding: 12px; }
+  .voters-col-title { font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #555; margin-bottom: 8px; }
+  .voter-chip {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 0; border-bottom: 1px solid #1a1a22;
+    font-size: 13px; color: #ccc;
   }
+  .voter-chip:last-child { border-bottom: none; }
+  .voter-avatar { font-size: 16px; }
 
-  .rank-item.first {
-    border-color: #7c6af7;
-    background: #1a1630;
+  /* ── verdict ── */
+  .verdict {
+    margin-top: 12px; font-size: 14px; font-weight: 600;
+    text-align: center; padding: 10px; border-radius: 8px;
   }
-
-  .rank-pos {
-    font-size: 18px;
-    font-weight: 700;
-    color: #444;
-    width: 28px;
-    text-align: center;
-  }
-
-  .rank-item.first .rank-pos { color: #a99fff; }
-
-  .rank-name {
-    flex: 1;
-    font-size: 15px;
-    font-weight: 500;
-    color: #f0f0f0;
-  }
-
-  .rank-score {
-    font-size: 13px;
-    color: #666;
-  }
-
-  .rank-item.first .rank-score { color: #a99fff; }
-
-  .msg { text-align: center; color: #555; font-size: 14px; padding: 20px 0; }
+  .verdict.win  { background: #0d2818; color: #4ade80; border: 1px solid #1a4a2a; }
+  .verdict.lose { background: #1f0d0d; color: #f87171; border: 1px solid #3a1a1a; }
+  .verdict.skip { background: #1a1620; color: #a99fff; border: 1px solid #2a2035; }
 
   .majority-tag {
-    display: inline-block;
-    background: #0d2818;
-    color: #4ade80;
-    font-size: 11px;
-    font-weight: 600;
-    padding: 3px 8px;
-    border-radius: 99px;
-    margin-left: 6px;
-    vertical-align: middle;
+    display: inline-block; background: #0d2818; color: #4ade80;
+    font-size: 11px; font-weight: 600; padding: 3px 8px;
+    border-radius: 99px; margin-left: 6px; vertical-align: middle;
   }
 
-  /* Config URL */
-  #config-screen { display: block; }
-  #login-screen  { display: none; }
-  #game-screen   { display: none; }
-  #result-screen { display: none; }
-  #ranking-screen{ display: none; }
+  /* ── ranking ── */
+  .ranking-list { display: flex; flex-direction: column; gap: 10px; }
+  .rank-item {
+    display: flex; align-items: center; gap: 14px;
+    background: #0f0f13; border: 1px solid #2a2a35;
+    border-radius: 10px; padding: 14px 16px;
+  }
+  .rank-item.first { border-color: #7c6af7; background: #1a1630; }
+  .rank-pos { font-size: 18px; font-weight: 700; color: #444; width: 28px; text-align: center; }
+  .rank-item.first .rank-pos { color: #a99fff; }
+  .rank-avatar { font-size: 24px; }
+  .rank-name  { flex: 1; font-size: 15px; font-weight: 500; color: #f0f0f0; }
+  .rank-score { font-size: 13px; color: #666; }
+  .rank-item.first .rank-score { color: #a99fff; }
+
+  /* ── waiting screen ── */
+  .waiting-pulse {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 20px; padding: 20px 0;
+  }
+  .pulse-ring {
+    width: 60px; height: 60px; border-radius: 50%;
+    border: 3px solid #7c6af7;
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: .3; transform: scale(.85); }
+  }
+
+  /* ── admin panel ── */
+  .admin-header {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 24px;
+  }
+  .admin-badge {
+    background: #7c6af7; color: #fff; font-size: 10px;
+    font-weight: 700; padding: 3px 8px; border-radius: 99px;
+    letter-spacing: 1px; text-transform: uppercase;
+  }
+  .admin-info {
+    background: #0f0f13; border: 1px solid #2a2a35;
+    border-radius: 10px; padding: 14px 16px; margin-bottom: 16px;
+    font-size: 14px; color: #aaa; line-height: 1.6;
+  }
+  .admin-info strong { color: #f0f0f0; }
+  .admin-timer-setup { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .admin-timer-setup label { font-size: 13px; color: #aaa; white-space: nowrap; }
+  .admin-timer-setup input { margin-bottom: 0; }
+
+  .admin-q-status {
+    font-size: 13px; color: #666; margin-bottom: 16px; text-align: center;
+  }
+
+  .btn-row { display: flex; gap: 10px; }
+  .btn-row .btn-primary { margin-top: 0; }
+  .btn-row .btn-ghost   { margin-top: 0; }
+
+  /* ── misc ── */
+  .msg { text-align: center; color: #555; font-size: 14px; padding: 20px 0; }
+  .error-msg { color: #f87171; font-size: 13px; margin-top: 8px; text-align: center; }
+
+  /* ── screens ── */
+  #config-screen,
+  #login-screen,
+  #avatar-screen,
+  #waiting-screen,
+  #game-screen,
+  #voters-screen,
+  #result-screen,
+  #ranking-screen,
+  #admin-screen { display: none; }
 </style>
 </head>
 <body>
-
 <div class="container">
 
   <div class="logo">
@@ -313,29 +261,61 @@
     <p>Adivinhe o que a maioria vai escolher</p>
   </div>
 
-  <!-- Tela 0: configurar URL do Apps Script -->
+  <!-- 0: URL do Apps Script -->
   <div id="config-screen" class="card">
     <div class="step-label">Configuração</div>
     <div class="question-text" style="font-size:17px">Cole a URL do Apps Script</div>
     <input type="text" id="script-url" placeholder="https://script.google.com/macros/s/..." />
-    <button class="btn-primary" onclick="saveUrl()">Entrar no jogo</button>
+    <button class="btn-primary" onclick="saveUrl()">Continuar</button>
     <p style="font-size:12px; color:#444; margin-top:14px; text-align:center">
-      Cada jogador cola a mesma URL recebida pelo host
+      Cada jogador usa a mesma URL do host
     </p>
   </div>
 
-  <!-- Tela 1: login -->
+  <!-- 1: código de acesso -->
   <div id="login-screen" class="card">
-    <div class="step-label">Boas vindas</div>
-    <div class="question-text" style="font-size:17px">Qual é o seu nome?</div>
+    <div class="step-label">Acesso</div>
+    <div class="question-text" style="font-size:17px">Qual é o seu nome e código?</div>
     <input type="text" id="player-name" placeholder="Seu nome..." maxlength="30" />
-    <button class="btn-primary" onclick="startGame()">Entrar</button>
+    <input type="text" id="access-code" placeholder="Código de acesso..." maxlength="20" />
+    <div id="login-error" class="error-msg"></div>
+    <button class="btn-primary" onclick="doLogin()">Entrar</button>
   </div>
 
-  <!-- Tela 2: jogo -->
+  <!-- 2: escolha de avatar -->
+  <div id="avatar-screen" class="card">
+    <div class="step-label">Seu avatar</div>
+    <div class="question-text" style="font-size:17px">Escolha um avatar</div>
+    <div class="avatar-grid" id="avatar-grid"></div>
+    <button class="btn-primary" id="btn-confirm-avatar" onclick="confirmAvatar()" disabled>Confirmar</button>
+  </div>
+
+  <!-- 3: aguardando admin iniciar -->
+  <div id="waiting-screen" class="card">
+    <div class="step-label">Sala de espera</div>
+    <div class="question-text" style="font-size:17px; text-align:center">
+      Aguardando o host iniciar o jogo...
+    </div>
+    <div class="waiting-pulse">
+      <div class="pulse-ring"></div>
+      <p id="waiting-players-info" style="font-size:13px; color:#555;">—</p>
+    </div>
+  </div>
+
+  <!-- 4: jogo -->
   <div id="game-screen" class="card">
     <div class="progress" id="progress-dots"></div>
     <div class="step-label" id="q-counter">Pergunta 1 de 5</div>
+    <div class="timer-wrap">
+      <div class="timer-circle">
+        <svg width="72" height="72" viewBox="0 0 72 72">
+          <circle class="timer-bg" cx="36" cy="36" r="30"/>
+          <circle class="timer-arc" id="timer-arc" cx="36" cy="36" r="30"
+            stroke-dasharray="188.5" stroke-dashoffset="0"/>
+        </svg>
+        <div class="timer-num" id="timer-num">30</div>
+      </div>
+    </div>
     <div class="question-text" id="q-text"></div>
     <div class="options">
       <button class="opt-btn" id="btn-a" onclick="selectOption('a')"></button>
@@ -344,12 +324,29 @@
     <button class="btn-primary" id="btn-vote" onclick="submitVote()" disabled>Votar</button>
   </div>
 
-  <!-- Tela 3: resultado da pergunta -->
+  <!-- 5: quem votou no quê (tela intermediária) -->
+  <div id="voters-screen" class="card">
+    <div class="step-label" id="vr-counter"></div>
+    <div class="question-text" id="vr-text" style="font-size:16px; margin-bottom:16px"></div>
+    <div class="voters-cols">
+      <div class="voters-col">
+        <div class="voters-col-title" id="vr-title-a"></div>
+        <div id="vr-voters-a"></div>
+      </div>
+      <div class="voters-col">
+        <div class="voters-col-title" id="vr-title-b"></div>
+        <div id="vr-voters-b"></div>
+      </div>
+    </div>
+    <button class="btn-primary" id="btn-to-result" onclick="goToResult()" style="margin-top:20px">Ver resultado →</button>
+  </div>
+
+  <!-- 6: resultado da pergunta -->
   <div id="result-screen" class="card">
     <div class="step-label" id="r-counter"></div>
     <div class="question-text" id="r-text" style="font-size:16px; margin-bottom:20px"></div>
     <div class="result-box">
-      <div class="result-label">Votos até agora</div>
+      <div class="result-label">Votos</div>
       <div class="bar-row">
         <div class="bar-label" id="r-label-a"></div>
         <div class="bar-track"><div class="bar-fill" id="r-bar-a" style="width:0%"></div></div>
@@ -365,214 +362,567 @@
     <button class="btn-primary" id="btn-next" onclick="nextQuestion()" style="margin-top:20px">Próxima pergunta →</button>
   </div>
 
-  <!-- Tela 4: ranking final -->
+  <!-- 7: ranking final -->
   <div id="ranking-screen" class="card">
     <div class="step-label">Resultado final</div>
-    <div class="question-text" style="font-size:20px; margin-bottom:24px">Ranking</div>
+    <div class="question-text" style="font-size:20px; margin-bottom:24px">🏆 Ranking</div>
     <div class="ranking-list" id="ranking-list"></div>
     <button class="btn-primary" onclick="resetGame()" style="margin-top:24px">Jogar novamente</button>
   </div>
 
-</div>
+  <!-- 8: painel admin -->
+  <div id="admin-screen" class="card">
+    <div class="admin-header">
+      <div class="question-text" style="font-size:18px; margin-bottom:0">Painel do Host</div>
+      <div class="admin-badge">ADMIN</div>
+    </div>
+
+    <div class="admin-info" id="admin-status-info">
+      Jogo ainda não iniciado. Configure o tempo e clique em <strong>Iniciar Jogo</strong>.
+    </div>
+
+    <div id="admin-setup-area">
+      <div class="admin-timer-setup">
+        <label>Segundos por pergunta:</label>
+        <input type="number" id="admin-seconds" value="30" min="5" max="120" style="width:80px; margin-bottom:0" />
+      </div>
+      <button class="btn-primary" onclick="adminStart()">▶ Iniciar Jogo</button>
+    </div>
+
+    <div id="admin-running-area" style="display:none">
+      <div class="admin-q-status" id="admin-q-status">Pergunta 1 de 5</div>
+      <div class="timer-wrap" style="margin-bottom:16px">
+        <div class="timer-circle">
+          <svg width="72" height="72" viewBox="0 0 72 72">
+            <circle class="timer-bg" cx="36" cy="36" r="30"/>
+            <circle class="timer-arc" id="admin-timer-arc" cx="36" cy="36" r="30"
+              stroke-dasharray="188.5" stroke-dashoffset="0"/>
+          </svg>
+          <div class="timer-num" id="admin-timer-num">30</div>
+        </div>
+      </div>
+      <div class="btn-row" style="margin-bottom:10px">
+        <button class="btn-ghost" id="btn-pause" onclick="adminPause()">⏸ Pausar</button>
+        <button class="btn-primary" onclick="adminNextQ()" id="btn-admin-next">Próxima →</button>
+      </div>
+      <button class="btn-danger" onclick="adminEnd()">⏹ Encerrar Jogo</button>
+    </div>
+  </div>
+
+</div><!-- /container -->
 
 <script>
-  let SCRIPT_URL = '';
-  let QUESTIONS = [];
-  let playerName = '';
-  let currentQ = 0;
-  let selectedOption = null;
-  let myAnswers = [];
+// ═══════════════════════════════════════════════
+// ESTADO GLOBAL
+// ═══════════════════════════════════════════════
+let SCRIPT_URL  = '';
+let QUESTIONS   = [];
+let playerName  = '';
+let playerAvatar= '';
+let isAdmin     = false;
+let currentQ    = 0;
+let selectedOption = null;
+let myAnswers   = [];          // { qId, answer }[]
+let resultCache = {};          // qId → data
 
-  function show(id) {
-    ['config-screen','login-screen','game-screen','result-screen','ranking-screen']
-      .forEach(s => document.getElementById(s).style.display = 'none');
-    document.getElementById(id).style.display = 'block';
+// Timer state
+let timerSeconds    = 30;
+let timerRemaining  = 30;
+let timerStartEpoch = 0;       // ms epoch quando começou (do servidor)
+let timerInterval   = null;
+let timerPaused     = false;
+let pausedAt        = 0;       // segundos restantes quando pausou
+
+const CIRCUMFERENCE = 188.5;  // 2π × 30
+
+const AVATARS = [
+  '🐱','🐶','🦊','🐻','🐼','🐨',
+  '🦁','🐯','🦝','🐸','🐙','🦄',
+  '🐧','🦋','🐺','🦊','🐵','🦉',
+  '🎃','👾','🤖','👻','🦸','🧙'
+];
+
+// ═══════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════
+function show(id) {
+  [
+    'config-screen','login-screen','avatar-screen','waiting-screen',
+    'game-screen','voters-screen','result-screen','ranking-screen','admin-screen'
+  ].forEach(s => document.getElementById(s).style.display = 'none');
+  document.getElementById(id).style.display = 'block';
+}
+
+async function api(params) {
+  const qs = new URLSearchParams(params).toString();
+  const res = await fetch(SCRIPT_URL + '?' + qs);
+  return res.json();
+}
+
+// ═══════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════
+function saveUrl() {
+  const url = document.getElementById('script-url').value.trim();
+  if (!url.startsWith('https://script.google.com')) {
+    alert('URL inválida. Verifique e tente novamente.');
+    return;
   }
+  SCRIPT_URL = url;
+  show('login-screen');
+}
 
-  function saveUrl() {
-    const url = document.getElementById('script-url').value.trim();
-    if (!url.startsWith('https://script.google.com')) {
-      alert('URL inválida. Verifique e tente novamente.');
-      return;
-    }
-    SCRIPT_URL = url;
-    loadQuestions();
-  }
+// ═══════════════════════════════════════════════
+// LOGIN + CÓDIGO
+// ═══════════════════════════════════════════════
+async function doLogin() {
+  const name = document.getElementById('player-name').value.trim();
+  const code = document.getElementById('access-code').value.trim();
+  const errEl = document.getElementById('login-error');
+  errEl.textContent = '';
 
-  async function api(params) {
-    const qs = new URLSearchParams(params).toString();
-    const res = await fetch(SCRIPT_URL + '?' + qs);
-    return res.json();
-  }
+  if (!name) { errEl.textContent = 'Digite seu nome.'; return; }
+  if (!code)  { errEl.textContent = 'Digite o código de acesso.'; return; }
 
-  async function loadQuestions() {
-    try {
-      const data = await api({ action: 'getQuestions' });
-      QUESTIONS = data.questions;
-      show('login-screen');
-    } catch(e) {
-      alert('Não consegui conectar. Verifique a URL do Apps Script.');
-    }
-  }
+  try {
+    const data = await api({ action: 'validateCode', code });
+    if (!data.ok) { errEl.textContent = 'Código inválido.'; return; }
 
-  function startGame() {
-    const name = document.getElementById('player-name').value.trim();
-    if (!name) return;
     playerName = name;
-    currentQ = 0;
-    myAnswers = [];
-    renderProgressDots();
+    isAdmin = data.role === 'admin';
+
+    if (isAdmin) {
+      await loadQuestions();
+      show('admin-screen');
+    } else {
+      await loadQuestions();
+      buildAvatarGrid();
+      show('avatar-screen');
+    }
+  } catch(e) {
+    errEl.textContent = 'Erro ao conectar. Verifique a URL.';
+  }
+}
+
+async function loadQuestions() {
+  const data = await api({ action: 'getQuestions' });
+  QUESTIONS = data.questions;
+}
+
+// ═══════════════════════════════════════════════
+// AVATAR
+// ═══════════════════════════════════════════════
+function buildAvatarGrid() {
+  const grid = document.getElementById('avatar-grid');
+  grid.innerHTML = AVATARS.map(a =>
+    `<div class="avatar-opt" onclick="pickAvatar(this,'${a}')">${a}</div>`
+  ).join('');
+}
+
+function pickAvatar(el, avatar) {
+  document.querySelectorAll('.avatar-opt').forEach(e => e.classList.remove('picked'));
+  el.classList.add('picked');
+  playerAvatar = avatar;
+  document.getElementById('btn-confirm-avatar').disabled = false;
+}
+
+async function confirmAvatar() {
+  // Registra jogador no servidor e vai pra sala de espera
+  try {
+    await api({ action: 'registerPlayer', player: playerName, avatar: playerAvatar });
+  } catch(e) {}
+  show('waiting-screen');
+  waitForGame();
+}
+
+// ═══════════════════════════════════════════════
+// WAITING — polling leve só até o jogo começar
+// ═══════════════════════════════════════════════
+let waitInterval = null;
+
+function waitForGame() {
+  document.getElementById('waiting-players-info').textContent = 'Aguardando host...';
+  waitInterval = setInterval(async () => {
+    try {
+      const data = await api({ action: 'getGameState' });
+      if (data.started) {
+        clearInterval(waitInterval);
+        QUESTIONS     = data.questions || QUESTIONS;
+        timerSeconds  = data.timerSeconds;
+        timerStartEpoch = data.startEpoch; // ms epoch do servidor
+        startGamePlayer();
+      }
+    } catch(e) {}
+  }, 3000);
+}
+
+// ═══════════════════════════════════════════════
+// JOGO — PLAYER
+// ═══════════════════════════════════════════════
+function startGamePlayer() {
+  currentQ   = 0;
+  myAnswers  = [];
+  renderProgressDots();
+  showQuestion();
+  show('game-screen');
+}
+
+function renderProgressDots() {
+  const el = document.getElementById('progress-dots');
+  el.innerHTML = QUESTIONS.map((_, i) =>
+    `<div class="progress-dot" id="dot-${i}"></div>`
+  ).join('');
+}
+
+function updateDots() {
+  QUESTIONS.forEach((_, i) => {
+    const d = document.getElementById('dot-' + i);
+    d.className = 'progress-dot' +
+      (i < currentQ ? ' done' : i === currentQ ? ' current' : '');
+  });
+}
+
+function showQuestion() {
+  const q = QUESTIONS[currentQ];
+  document.getElementById('q-counter').textContent = `Pergunta ${currentQ + 1} de ${QUESTIONS.length}`;
+  document.getElementById('q-text').textContent    = q.text;
+  document.getElementById('btn-a').textContent     = q.a;
+  document.getElementById('btn-b').textContent     = q.b;
+  document.getElementById('btn-a').className = 'opt-btn';
+  document.getElementById('btn-b').className = 'opt-btn';
+  document.getElementById('btn-a').disabled  = false;
+  document.getElementById('btn-b').disabled  = false;
+  document.getElementById('btn-vote').disabled = true;
+  selectedOption = null;
+  updateDots();
+
+  // calcula quanto tempo já passou desta pergunta
+  const elapsed = Math.floor((Date.now() - (timerStartEpoch + currentQ * timerSeconds * 1000)) / 1000);
+  const remaining = Math.max(0, timerSeconds - elapsed);
+  startTimer(remaining);
+}
+
+function selectOption(opt) {
+  selectedOption = opt;
+  document.getElementById('btn-a').className = 'opt-btn' + (opt === 'a' ? ' selected' : '');
+  document.getElementById('btn-b').className = 'opt-btn' + (opt === 'b' ? ' selected' : '');
+  document.getElementById('btn-vote').disabled = false;
+}
+
+// ── Timer visual (player) ──
+function startTimer(seconds) {
+  clearInterval(timerInterval);
+  timerRemaining = seconds;
+  renderTimerPlayer(seconds);
+
+  timerInterval = setInterval(() => {
+    timerRemaining--;
+    renderTimerPlayer(timerRemaining);
+    if (timerRemaining <= 0) {
+      clearInterval(timerInterval);
+      autoSubmit();
+    }
+  }, 1000);
+}
+
+function renderTimerPlayer(s) {
+  const arc = document.getElementById('timer-arc');
+  const num = document.getElementById('timer-num');
+  const pct = s / timerSeconds;
+  arc.style.strokeDashoffset = CIRCUMFERENCE * (1 - pct);
+  arc.className = 'timer-arc' + (s <= 5 ? ' urgent' : '');
+  num.textContent = s;
+  num.className   = 'timer-num' + (s <= 5 ? ' urgent' : '');
+}
+
+function autoSubmit() {
+  document.getElementById('btn-a').disabled = true;
+  document.getElementById('btn-b').disabled = true;
+  document.getElementById('btn-vote').disabled = true;
+
+  const q = QUESTIONS[currentQ];
+  const answer = selectedOption === 'a' ? q.a : selectedOption === 'b' ? q.b : null;
+
+  if (answer) {
+    myAnswers.push({ qId: q.id, answer });
+    api({ action: 'vote', player: playerName, avatar: playerAvatar, question: q.id, answer }).catch(() => {});
+  } else {
+    myAnswers.push({ qId: q.id, answer: null }); // sem voto
+  }
+
+  showVotersScreen(q, answer);
+}
+
+async function submitVote() {
+  if (!selectedOption) return;
+  clearInterval(timerInterval);
+
+  const q = QUESTIONS[currentQ];
+  const answer = selectedOption === 'a' ? q.a : q.b;
+
+  document.getElementById('btn-vote').disabled = true;
+  document.getElementById('btn-a').disabled = true;
+  document.getElementById('btn-b').disabled = true;
+
+  myAnswers.push({ qId: q.id, answer });
+  try {
+    await api({ action: 'vote', player: playerName, avatar: playerAvatar, question: q.id, answer });
+  } catch(e) {}
+
+  showVotersScreen(q, answer);
+}
+
+// ═══════════════════════════════════════════════
+// TELA INTERMEDIÁRIA — quem votou no quê
+// ═══════════════════════════════════════════════
+async function showVotersScreen(q, myAnswer) {
+  document.getElementById('vr-counter').textContent = `Pergunta ${currentQ + 1} de ${QUESTIONS.length}`;
+  document.getElementById('vr-text').textContent    = q.text;
+  document.getElementById('vr-title-a').textContent = q.a;
+  document.getElementById('vr-title-b').textContent = q.b;
+  document.getElementById('vr-voters-a').innerHTML  = '<div class="msg" style="padding:8px 0">Carregando...</div>';
+  document.getElementById('vr-voters-b').innerHTML  = '';
+
+  show('voters-screen');
+
+  // guarda myAnswer para usar em goToResult
+  window._currentMyAnswer = myAnswer;
+  window._currentQ        = q;
+
+  // busca votos do servidor
+  try {
+    const data = await api({ action: 'getResults', question: q.id });
+    resultCache[q.id] = data;
+
+    const votersA = (data.voters || []).filter(v => v.answer === q.a);
+    const votersB = (data.voters || []).filter(v => v.answer === q.b);
+
+    document.getElementById('vr-voters-a').innerHTML = votersA.length
+      ? votersA.map(v => `<div class="voter-chip"><span class="voter-avatar">${v.avatar}</span>${v.name}</div>`).join('')
+      : '<div style="font-size:12px;color:#444;padding:4px 0">Ninguém</div>';
+
+    document.getElementById('vr-voters-b').innerHTML = votersB.length
+      ? votersB.map(v => `<div class="voter-chip"><span class="voter-avatar">${v.avatar}</span>${v.name}</div>`).join('')
+      : '<div style="font-size:12px;color:#444;padding:4px 0">Ninguém</div>';
+  } catch(e) {
+    document.getElementById('vr-voters-a').innerHTML = '<div class="msg">Erro ao carregar.</div>';
+  }
+}
+
+function goToResult() {
+  const q      = window._currentQ;
+  const answer = window._currentMyAnswer;
+  const data   = resultCache[q.id];
+  renderResult(q, answer, data);
+}
+
+// ═══════════════════════════════════════════════
+// RESULTADO DA PERGUNTA
+// ═══════════════════════════════════════════════
+function renderResult(q, myAnswer, data) {
+  document.getElementById('r-counter').textContent = `Pergunta ${currentQ + 1} de ${QUESTIONS.length}`;
+  document.getElementById('r-text').textContent    = q.text;
+
+  const total = data?.total || 1;
+  const cA    = data?.a?.count || 0;
+  const cB    = data?.b?.count || 0;
+  const pA    = Math.round((cA / total) * 100);
+  const pB    = Math.round((cB / total) * 100);
+
+  document.getElementById('r-label-a').innerHTML =
+    q.a + (data?.majority === q.a ? '<span class="majority-tag">maioria</span>' : '');
+  document.getElementById('r-label-b').innerHTML =
+    q.b + (data?.majority === q.b ? '<span class="majority-tag">maioria</span>' : '');
+  document.getElementById('r-count-a').textContent = cA;
+  document.getElementById('r-count-b').textContent = cB;
+
+  setTimeout(() => {
+    document.getElementById('r-bar-a').style.width = pA + '%';
+    document.getElementById('r-bar-b').style.width = pB + '%';
+    document.getElementById('r-bar-a').className   = 'bar-fill' + (data?.majority === q.a ? ' majority' : '');
+    document.getElementById('r-bar-b').className   = 'bar-fill' + (data?.majority === q.b ? ' majority' : '');
+  }, 50);
+
+  const verdict = document.getElementById('r-verdict');
+  if (!myAnswer) {
+    verdict.className   = 'verdict skip';
+    verdict.textContent = '— Você não votou a tempo';
+  } else if (myAnswer === data?.majority) {
+    verdict.className   = 'verdict win';
+    verdict.textContent = '✓ Você acertou a maioria!';
+  } else {
+    verdict.className   = 'verdict lose';
+    verdict.textContent = `✗ Maioria escolheu: ${data?.majority}`;
+  }
+
+  const isLast = currentQ === QUESTIONS.length - 1;
+  document.getElementById('btn-next').textContent = isLast ? 'Ver ranking →' : 'Próxima pergunta →';
+
+  show('result-screen');
+}
+
+async function nextQuestion() {
+  currentQ++;
+  if (currentQ >= QUESTIONS.length) {
+    await showRanking();
+  } else {
     showQuestion();
     show('game-screen');
   }
+}
 
-  function renderProgressDots() {
-    const el = document.getElementById('progress-dots');
-    el.innerHTML = QUESTIONS.map((_, i) =>
-      `<div class="progress-dot" id="dot-${i}"></div>`
-    ).join('');
+// ═══════════════════════════════════════════════
+// RANKING
+// ═══════════════════════════════════════════════
+async function showRanking() {
+  let data;
+  try {
+    data = await api({ action: 'getRanking' });
+  } catch(e) {
+    data = { ok: false, ranking: [] };
   }
 
-  function updateDots() {
-    QUESTIONS.forEach((_, i) => {
-      const dot = document.getElementById('dot-' + i);
-      dot.className = 'progress-dot' +
-        (i < currentQ ? ' done' : i === currentQ ? ' current' : '');
+  const list = document.getElementById('ranking-list');
+  if (!data.ranking || data.ranking.length === 0) {
+    list.innerHTML = '<div class="msg">Nenhum dado ainda.</div>';
+  } else {
+    const medals = ['🥇','🥈','🥉'];
+    list.innerHTML = data.ranking.map((p, i) => `
+      <div class="rank-item ${i === 0 ? 'first' : ''}">
+        <div class="rank-pos">${medals[i] || (i + 1)}</div>
+        <div class="rank-avatar">${p.avatar || '❓'}</div>
+        <div class="rank-name">${p.name}</div>
+        <div class="rank-score">${p.score} / ${data.total}</div>
+      </div>
+    `).join('');
+  }
+
+  show('ranking-screen');
+}
+
+async function resetGame() {
+  currentQ    = 0;
+  myAnswers   = [];
+  playerName  = '';
+  playerAvatar= '';
+  isAdmin     = false;
+  resultCache = {};
+  document.getElementById('player-name').value  = '';
+  document.getElementById('access-code').value  = '';
+  document.getElementById('login-error').textContent = '';
+  show('login-screen');
+}
+
+// ═══════════════════════════════════════════════
+// ADMIN — painel
+// ═══════════════════════════════════════════════
+let adminTimerInterval = null;
+let adminTimerRemaining = 0;
+let adminPaused = false;
+let adminPausedAt = 0;
+let adminCurrentQ = 0;
+let adminTimerSeconds = 30;
+
+async function adminStart() {
+  adminTimerSeconds = parseInt(document.getElementById('admin-seconds').value) || 30;
+  adminCurrentQ = 0;
+
+  const startEpoch = Date.now();
+  try {
+    await api({
+      action: 'startGame',
+      timerSeconds: adminTimerSeconds,
+      startEpoch: startEpoch
     });
-  }
+  } catch(e) {}
 
-  function showQuestion() {
-    const q = QUESTIONS[currentQ];
-    document.getElementById('q-counter').textContent =
-      `Pergunta ${currentQ + 1} de ${QUESTIONS.length}`;
-    document.getElementById('q-text').textContent = q.text;
-    document.getElementById('btn-a').textContent = q.a;
-    document.getElementById('btn-b').textContent = q.b;
-    document.getElementById('btn-a').className = 'opt-btn';
-    document.getElementById('btn-b').className = 'opt-btn';
-    document.getElementById('btn-a').disabled = false;
-    document.getElementById('btn-b').disabled = false;
-    document.getElementById('btn-vote').disabled = true;
-    selectedOption = null;
-    updateDots();
-  }
+  document.getElementById('admin-setup-area').style.display  = 'none';
+  document.getElementById('admin-running-area').style.display = 'block';
+  document.getElementById('admin-status-info').textContent =
+    `Jogo em andamento! Timer: ${adminTimerSeconds}s por pergunta.`;
 
-  function selectOption(opt) {
-    selectedOption = opt;
-    document.getElementById('btn-a').className = 'opt-btn' + (opt === 'a' ? ' selected' : '');
-    document.getElementById('btn-b').className = 'opt-btn' + (opt === 'b' ? ' selected' : '');
-    document.getElementById('btn-vote').disabled = false;
-  }
+  adminRunTimer();
+}
 
-  async function submitVote() {
-    if (!selectedOption) return;
-    const q = QUESTIONS[currentQ];
-    const answer = selectedOption === 'a' ? q.a : q.b;
+function adminRunTimer() {
+  adminTimerRemaining = adminTimerSeconds;
+  adminPaused = false;
+  renderAdminTimer(adminTimerRemaining);
+  updateAdminQStatus();
 
-    document.getElementById('btn-vote').disabled = true;
-    document.getElementById('btn-a').disabled = true;
-    document.getElementById('btn-b').disabled = true;
-
-    myAnswers.push({ qId: q.id, answer });
-
-    try {
-      await api({ action: 'vote', player: playerName, question: q.id, answer });
-    } catch(e) {}
-
-    showResult(q, answer);
-  }
-
-  async function showResult(q, myAnswer) {
-    let data;
-    try {
-      data = await api({ action: 'getResults', question: q.id });
-    } catch(e) {
-      data = { ok: false };
+  clearInterval(adminTimerInterval);
+  adminTimerInterval = setInterval(() => {
+    if (adminPaused) return;
+    adminTimerRemaining--;
+    renderAdminTimer(adminTimerRemaining);
+    if (adminTimerRemaining <= 0) {
+      clearInterval(adminTimerInterval);
+      // avança automaticamente depois de 3s
+      setTimeout(() => {
+        if (adminCurrentQ < QUESTIONS.length - 1) adminNextQ();
+      }, 3000);
     }
+  }, 1000);
+}
 
-    document.getElementById('r-counter').textContent =
-      `Pergunta ${currentQ + 1} de ${QUESTIONS.length}`;
-    document.getElementById('r-text').textContent = q.text;
+function renderAdminTimer(s) {
+  const arc = document.getElementById('admin-timer-arc');
+  const num = document.getElementById('admin-timer-num');
+  if (!arc || !num) return;
+  const pct = s / adminTimerSeconds;
+  arc.style.strokeDashoffset = CIRCUMFERENCE * (1 - pct);
+  arc.className = 'timer-arc' + (s <= 5 ? ' urgent' : '');
+  num.textContent = s;
+  num.className   = 'timer-num' + (s <= 5 ? ' urgent' : '');
+}
 
-    const labelA = document.getElementById('r-label-a');
-    const labelB = document.getElementById('r-label-b');
-    const barA   = document.getElementById('r-bar-a');
-    const barB   = document.getElementById('r-bar-b');
-    const cntA   = document.getElementById('r-count-a');
-    const cntB   = document.getElementById('r-count-b');
+function updateAdminQStatus() {
+  document.getElementById('admin-q-status').textContent =
+    `Pergunta ${adminCurrentQ + 1} de ${QUESTIONS.length}: ${QUESTIONS[adminCurrentQ]?.text || ''}`;
+}
 
-    labelA.innerHTML = q.a + (data.majority === q.a ? '<span class="majority-tag">maioria</span>' : '');
-    labelB.innerHTML = q.b + (data.majority === q.b ? '<span class="majority-tag">maioria</span>' : '');
-
-    const total = data.total || 1;
-    const pA = Math.round((data.a.count / total) * 100);
-    const pB = Math.round((data.b.count / total) * 100);
-
-    setTimeout(() => {
-      barA.style.width = pA + '%';
-      barB.style.width = pB + '%';
-      barA.className = 'bar-fill' + (data.majority === q.a ? ' majority' : '');
-      barB.className = 'bar-fill' + (data.majority === q.b ? ' majority' : '');
-    }, 50);
-
-    cntA.textContent = data.a.count;
-    cntB.textContent = data.b.count;
-
-    const verdict = document.getElementById('r-verdict');
-    const win = myAnswer === data.majority;
-    verdict.className = 'verdict ' + (win ? 'win' : 'lose');
-    verdict.textContent = win
-      ? '✓ Você acertou a maioria!'
-      : `✗ Você escolheu diferente da maioria (${data.majority})`;
-
-    const isLast = currentQ === QUESTIONS.length - 1;
-    document.getElementById('btn-next').textContent = isLast ? 'Ver ranking final →' : 'Próxima pergunta →';
-
-    show('result-screen');
+function adminPause() {
+  const btn = document.getElementById('btn-pause');
+  if (!adminPaused) {
+    adminPaused   = true;
+    adminPausedAt = adminTimerRemaining;
+    btn.textContent = '▶ Retomar';
+    api({ action: 'pauseGame' }).catch(() => {});
+  } else {
+    adminPaused = false;
+    btn.textContent = '⏸ Pausar';
+    api({ action: 'resumeGame' }).catch(() => {});
   }
+}
 
-  async function nextQuestion() {
-    currentQ++;
-    if (currentQ >= QUESTIONS.length) {
-      await showRanking();
-    } else {
-      showQuestion();
-      show('game-screen');
-    }
+async function adminNextQ() {
+  clearInterval(adminTimerInterval);
+  adminCurrentQ++;
+  if (adminCurrentQ >= QUESTIONS.length) {
+    await adminEnd();
+    return;
   }
+  try {
+    await api({ action: 'advanceQuestion', questionIndex: adminCurrentQ });
+  } catch(e) {}
+  adminRunTimer();
+}
 
-  async function showRanking() {
-    let data;
-    try {
-      data = await api({ action: 'getRanking' });
-    } catch(e) {
-      data = { ok: false, ranking: [] };
-    }
+async function adminEnd() {
+  clearInterval(adminTimerInterval);
+  try {
+    await api({ action: 'endGame' });
+  } catch(e) {}
+  document.getElementById('admin-status-info').textContent = 'Jogo encerrado. Veja o ranking abaixo.';
+  document.getElementById('admin-running-area').style.display = 'none';
+  document.getElementById('admin-setup-area').style.display   = 'block';
+  await showRanking();
+}
 
-    const list = document.getElementById('ranking-list');
-    if (!data.ranking || data.ranking.length === 0) {
-      list.innerHTML = '<div class="msg">Nenhum dado ainda.</div>';
-    } else {
-      const medals = ['🥇', '🥈', '🥉'];
-      list.innerHTML = data.ranking.map((p, i) => `
-        <div class="rank-item ${i === 0 ? 'first' : ''}">
-          <div class="rank-pos">${medals[i] || (i + 1)}</div>
-          <div class="rank-name">${p.name}</div>
-          <div class="rank-score">${p.score} / ${data.total}</div>
-        </div>
-      `).join('');
-    }
-
-    show('ranking-screen');
-  }
-
-  async function resetGame() {
-    currentQ = 0;
-    myAnswers = [];
-    playerName = '';
-    document.getElementById('player-name').value = '';
-    show('login-screen');
-  }
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+show('config-screen');
 </script>
 </body>
 </html>
