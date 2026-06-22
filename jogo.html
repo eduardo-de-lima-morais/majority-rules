@@ -359,7 +359,8 @@
       </div>
     </div>
     <div class="verdict" id="r-verdict"></div>
-    <button class="btn-primary" id="btn-next" onclick="nextQuestion()" style="margin-top:20px">Próxima pergunta →</button>
+    <div id="r-voters-wrap"></div>
+    <button class="btn-primary" id="btn-next" style="margin-top:20px">Próxima em 5s</button>
   </div>
 
   <!-- 7: ranking final -->
@@ -568,6 +569,9 @@ function startGamePlayer() {
   currentQ   = 0;
   myAnswers  = [];
   renderProgressDots();
+  // Calcula qual pergunta está ativa agora com base no clock
+  const elapsed = Math.floor((Date.now() - timerStartEpoch) / 1000);
+  currentQ = Math.min(Math.floor(elapsed / timerSeconds), QUESTIONS.length - 1);
   showQuestion();
   show('game-screen');
 }
@@ -599,15 +603,19 @@ function showQuestion() {
   document.getElementById('btn-b').disabled  = false;
   document.getElementById('btn-vote').disabled = true;
   selectedOption = null;
+  alreadyVoted   = false;
   updateDots();
 
-  // calcula quanto tempo já passou desta pergunta
-  const elapsed = Math.floor((Date.now() - (timerStartEpoch + currentQ * timerSeconds * 1000)) / 1000);
-  const remaining = Math.max(0, timerSeconds - elapsed);
-  startTimer(remaining);
+  // Calcula tempo restante exato baseado no clock do servidor
+  // Cada pergunta ocupa um slot de timerSeconds a partir do startEpoch
+  const qStartEpoch  = timerStartEpoch + currentQ * timerSeconds * 1000;
+  const elapsed      = Math.floor((Date.now() - qStartEpoch) / 1000);
+  const remaining    = Math.max(0, timerSeconds - elapsed);
+  startTimer(remaining, qStartEpoch);
 }
 
 function selectOption(opt) {
+  if (alreadyVoted) return;
   selectedOption = opt;
   document.getElementById('btn-a').className = 'opt-btn' + (opt === 'a' ? ' selected' : '');
   document.getElementById('btn-b').className = 'opt-btn' + (opt === 'b' ? ' selected' : '');
@@ -615,19 +623,22 @@ function selectOption(opt) {
 }
 
 // ── Timer visual (player) ──
-function startTimer(seconds) {
+// Usa setInterval de 200ms verificando o clock real para não derivar
+let alreadyVoted = false;
+
+function startTimer(initialSeconds, qStartEpoch) {
   clearInterval(timerInterval);
-  timerRemaining = seconds;
-  renderTimerPlayer(seconds);
+  renderTimerPlayer(initialSeconds);
 
   timerInterval = setInterval(() => {
-    timerRemaining--;
-    renderTimerPlayer(timerRemaining);
-    if (timerRemaining <= 0) {
+    const elapsed    = Math.floor((Date.now() - qStartEpoch) / 1000);
+    const remaining  = Math.max(0, timerSeconds - elapsed);
+    renderTimerPlayer(remaining);
+    if (remaining <= 0) {
       clearInterval(timerInterval);
-      autoSubmit();
+      if (!alreadyVoted) autoSubmit();
     }
-  }, 1000);
+  }, 200);
 }
 
 function renderTimerPlayer(s) {
@@ -641,28 +652,28 @@ function renderTimerPlayer(s) {
 }
 
 function autoSubmit() {
+  alreadyVoted = true;
   document.getElementById('btn-a').disabled = true;
   document.getElementById('btn-b').disabled = true;
   document.getElementById('btn-vote').disabled = true;
 
-  const q = QUESTIONS[currentQ];
+  const q      = QUESTIONS[currentQ];
   const answer = selectedOption === 'a' ? q.a : selectedOption === 'b' ? q.b : null;
 
+  myAnswers.push({ qId: q.id, answer });
   if (answer) {
-    myAnswers.push({ qId: q.id, answer });
     api({ action: 'vote', player: playerName, avatar: playerAvatar, question: q.id, answer }).catch(() => {});
-  } else {
-    myAnswers.push({ qId: q.id, answer: null }); // sem voto
   }
 
-  showVotersScreen(q, answer);
+  showResultScreen(q, answer);
 }
 
 async function submitVote() {
-  if (!selectedOption) return;
+  if (!selectedOption || alreadyVoted) return;
+  alreadyVoted = true;
   clearInterval(timerInterval);
 
-  const q = QUESTIONS[currentQ];
+  const q      = QUESTIONS[currentQ];
   const answer = selectedOption === 'a' ? q.a : q.b;
 
   document.getElementById('btn-vote').disabled = true;
@@ -674,65 +685,43 @@ async function submitVote() {
     await api({ action: 'vote', player: playerName, avatar: playerAvatar, question: q.id, answer });
   } catch(e) {}
 
-  showVotersScreen(q, answer);
+  showResultScreen(q, answer);
 }
 
 // ═══════════════════════════════════════════════
-// TELA INTERMEDIÁRIA — quem votou no quê
+// RESULTADO + VOTERS — tela única, avança automático
 // ═══════════════════════════════════════════════
-async function showVotersScreen(q, myAnswer) {
-  document.getElementById('vr-counter').textContent = `Pergunta ${currentQ + 1} de ${QUESTIONS.length}`;
-  document.getElementById('vr-text').textContent    = q.text;
-  document.getElementById('vr-title-a').textContent = q.a;
-  document.getElementById('vr-title-b').textContent = q.b;
-  document.getElementById('vr-voters-a').innerHTML  = '<div class="msg" style="padding:8px 0">Carregando...</div>';
-  document.getElementById('vr-voters-b').innerHTML  = '';
-
-  show('voters-screen');
-
-  // guarda myAnswer para usar em goToResult
-  window._currentMyAnswer = myAnswer;
-  window._currentQ        = q;
-
-  // busca votos do servidor
-  try {
-    const data = await api({ action: 'getResults', question: q.id });
-    resultCache[q.id] = data;
-
-    const votersA = (data.voters || []).filter(v => v.answer === q.a);
-    const votersB = (data.voters || []).filter(v => v.answer === q.b);
-
-    document.getElementById('vr-voters-a').innerHTML = votersA.length
-      ? votersA.map(v => `<div class="voter-chip"><span class="voter-avatar">${v.avatar}</span>${v.name}</div>`).join('')
-      : '<div style="font-size:12px;color:#444;padding:4px 0">Ninguém</div>';
-
-    document.getElementById('vr-voters-b').innerHTML = votersB.length
-      ? votersB.map(v => `<div class="voter-chip"><span class="voter-avatar">${v.avatar}</span>${v.name}</div>`).join('')
-      : '<div style="font-size:12px;color:#444;padding:4px 0">Ninguém</div>';
-  } catch(e) {
-    document.getElementById('vr-voters-a').innerHTML = '<div class="msg">Erro ao carregar.</div>';
-  }
-}
-
-function goToResult() {
-  const q      = window._currentQ;
-  const answer = window._currentMyAnswer;
-  const data   = resultCache[q.id];
-  renderResult(q, answer, data);
-}
-
-// ═══════════════════════════════════════════════
-// RESULTADO DA PERGUNTA
-// ═══════════════════════════════════════════════
-function renderResult(q, myAnswer, data) {
+async function showResultScreen(q, myAnswer) {
+  // Monta tela de resultado imediatamente com dados locais
   document.getElementById('r-counter').textContent = `Pergunta ${currentQ + 1} de ${QUESTIONS.length}`;
   document.getElementById('r-text').textContent    = q.text;
+  document.getElementById('r-label-a').innerHTML   = q.a;
+  document.getElementById('r-label-b').innerHTML   = q.b;
+  document.getElementById('r-count-a').textContent = '...';
+  document.getElementById('r-count-b').textContent = '...';
+  document.getElementById('r-bar-a').style.width   = '0%';
+  document.getElementById('r-bar-b').style.width   = '0%';
+  document.getElementById('r-verdict').className   = 'verdict';
+  document.getElementById('r-verdict').textContent = 'Aguardando votos...';
+  document.getElementById('r-voters-wrap').innerHTML = '';
 
+  show('result-screen');
+
+  // Busca resultado do servidor
+  let data;
+  try {
+    data = await api({ action: 'getResults', question: q.id });
+    resultCache[q.id] = data;
+  } catch(e) {
+    data = null;
+  }
+
+  // Atualiza barras
   const total = data?.total || 1;
   const cA    = data?.a?.count || 0;
   const cB    = data?.b?.count || 0;
-  const pA    = Math.round((cA / total) * 100);
-  const pB    = Math.round((cB / total) * 100);
+  const pA    = total > 0 ? Math.round((cA / total) * 100) : 0;
+  const pB    = total > 0 ? Math.round((cB / total) * 100) : 0;
 
   document.getElementById('r-label-a').innerHTML =
     q.a + (data?.majority === q.a ? '<span class="majority-tag">maioria</span>' : '');
@@ -748,6 +737,7 @@ function renderResult(q, myAnswer, data) {
     document.getElementById('r-bar-b').className   = 'bar-fill' + (data?.majority === q.b ? ' majority' : '');
   }, 50);
 
+  // Veredicto
   const verdict = document.getElementById('r-verdict');
   if (!myAnswer) {
     verdict.className   = 'verdict skip';
@@ -760,10 +750,48 @@ function renderResult(q, myAnswer, data) {
     verdict.textContent = `✗ Maioria escolheu: ${data?.majority}`;
   }
 
-  const isLast = currentQ === QUESTIONS.length - 1;
-  document.getElementById('btn-next').textContent = isLast ? 'Ver ranking →' : 'Próxima pergunta →';
+  // Voters inline
+  const votersA = (data?.voters || []).filter(v => v.answer === q.a);
+  const votersB = (data?.voters || []).filter(v => v.answer === q.b);
+  document.getElementById('r-voters-wrap').innerHTML = `
+    <div class="voters-cols" style="margin-top:14px">
+      <div class="voters-col">
+        <div class="voters-col-title">${q.a}</div>
+        ${votersA.length
+          ? votersA.map(v => `<div class="voter-chip"><span class="voter-avatar">${v.avatar}</span>${v.name}</div>`).join('')
+          : '<div style="font-size:12px;color:#444;padding:4px 0">Ninguém</div>'}
+      </div>
+      <div class="voters-col">
+        <div class="voters-col-title">${q.b}</div>
+        ${votersB.length
+          ? votersB.map(v => `<div class="voter-chip"><span class="voter-avatar">${v.avatar}</span>${v.name}</div>`).join('')
+          : '<div style="font-size:12px;color:#444;padding:4px 0">Ninguém</div>'}
+      </div>
+    </div>`;
 
-  show('result-screen');
+  // Countdown de 5s antes de avançar automaticamente
+  const isLast = currentQ === QUESTIONS.length - 1;
+  startResultCountdown(isLast ? 8 : 5, isLast);
+}
+
+function startResultCountdown(seconds, isLast) {
+  const btn = document.getElementById('btn-next');
+  let s = seconds;
+  btn.textContent = isLast ? `Ver ranking em ${s}s` : `Próxima em ${s}s`;
+  btn.disabled = false;
+
+  const cd = setInterval(() => {
+    s--;
+    if (s <= 0) {
+      clearInterval(cd);
+      nextQuestion();
+    } else {
+      btn.textContent = isLast ? `Ver ranking em ${s}s` : `Próxima em ${s}s`;
+    }
+  }, 1000);
+
+  // Permite avançar manualmente também
+  btn.onclick = () => { clearInterval(cd); nextQuestion(); };
 }
 
 async function nextQuestion() {
