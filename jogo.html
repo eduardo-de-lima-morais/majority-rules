@@ -259,7 +259,7 @@
   <div class="logo">
     <h1>Majority Rules</h1>
     <p>Adivinhe o que a maioria vai escolher</p>
-    <p style="font-size:11px; color:#333; margin-top:2px">v0.1.4</p>
+    <p style="font-size:11px; color:#333; margin-top:2px">v0.1.6</p>
   </div>
 
   <!-- 0: URL do Apps Script -->
@@ -632,45 +632,64 @@ function startMasterTicker() {
   masterTicker = setInterval(tickGame, 200);
 }
 
-function tickGame() {
-  const now        = Date.now();
-  const qIdx       = Math.min(Math.floor((now - timerStartEpoch) / (timerSeconds * 1000)), QUESTIONS.length - 1);
-  const qStart     = timerStartEpoch + qIdx * timerSeconds * 1000;
-  const remaining  = Math.max(0, timerSeconds - Math.floor((now - qStart) / 1000));
+const RESULT_SECS = 8; // segundos de tela de resultado (fixo)
 
-  // Avançou para próxima pergunta pelo clock — só avança se não estiver mostrando resultado
-  if (qIdx > currentQ && !showingResult) {
+function slotSize() { return timerSeconds + RESULT_SECS; }
+
+function tickGame() {
+  const now      = Date.now();
+  const elapsed  = (now - timerStartEpoch) / 1000;
+  const slot     = slotSize();
+
+  // Qual pergunta deveria estar ativa agora pelo clock
+  const qIdx     = Math.min(Math.floor(elapsed / slot), QUESTIONS.length - 1);
+  const qStart   = timerStartEpoch + qIdx * slot * 1000;
+  const inSlot   = (now - qStart) / 1000;          // segundos dentro do slot atual
+  const voting   = inSlot < timerSeconds;           // ainda na fase de votação
+  const result   = inSlot >= timerSeconds && inSlot < slot; // fase de resultado
+
+  // Avançou de pergunta pelo clock
+  if (qIdx > currentQ) {
     currentQ = qIdx;
     answeredQs.add(qIdx - 1);
     window._pendingAnswer = null;
+    showingResult = false;
     showQuestion();
     show('game-screen');
     return;
   }
 
-  // Fim de jogo pelo clock
-  if (now >= timerStartEpoch + QUESTIONS.length * timerSeconds * 1000 && !showingResult) {
+  // Fim de todas as perguntas
+  if (elapsed >= QUESTIONS.length * slot) {
     clearInterval(masterTicker);
     showRanking();
     return;
   }
 
-  // Atualiza timer visual se estiver na game-screen
-  const gameScreen = document.getElementById('game-screen');
-  if (gameScreen && gameScreen.style.display !== 'none') {
-    renderTimerPlayer(remaining);
+  if (voting) {
+    // Fase de votação — atualiza timer
+    const remaining = Math.max(0, timerSeconds - Math.floor(inSlot));
+    const gameScreen = document.getElementById('game-screen');
+    if (gameScreen && gameScreen.style.display !== 'none') {
+      renderTimerPlayer(remaining);
+    }
     if (remaining <= 0 && !answeredQs.has(currentQ)) {
       autoSubmit();
     }
+    showingResult = false;
+  } else if (result && !showingResult) {
+    // Entrou na fase de resultado — dispara onTimeUp uma única vez
+    showingResult = true;
+    const q      = QUESTIONS[currentQ];
+    const myAns  = (myAnswers.find(a => a.qId === q.id) || {}).answer || null;
+    onTimeUp(q, myAns);
   }
 
   // Atualiza countdown na result-screen
-  const resultScreen = document.getElementById('result-screen');
-  if (resultScreen && resultScreen.style.display !== 'none') {
-    const nextSlot = timerStartEpoch + (qIdx + 1) * timerSeconds * 1000;
-    const secsLeft = Math.ceil((nextSlot - now) / 1000);
+  if (result) {
+    const secsLeft = Math.ceil(slot - inSlot);
     const cd = document.getElementById('result-countdown');
-    if (cd) cd.textContent = secsLeft > 0 ? `Próxima pergunta em ${secsLeft}s` : '';
+    if (cd) cd.textContent = `Próxima pergunta em ${secsLeft}s`;
   }
 }
 
@@ -707,14 +726,11 @@ function autoSubmit() {
   }
 
   window._pendingAnswer = null;
-  // Aguarda 2s para votos chegarem ao servidor, depois busca resultado
-  onTimeUp(q, answer);
+  // tickGame detecta fim do slot e chama onTimeUp no momento certo
 }
 
 async function onTimeUp(q, answer) {
-  showingResult = true; // bloqueia tickGame de avançar
-
-  // Mostra tela de espera enquanto aguarda
+  // Mostra tela de espera imediatamente
   show('result-screen');
   document.getElementById('r-counter').textContent = `Pergunta ${currentQ + 1} de ${QUESTIONS.length}`;
   document.getElementById('r-text').textContent    = q.text;
@@ -738,11 +754,8 @@ async function onTimeUp(q, answer) {
     resultCache[q.id] = data;
   } catch(e) {}
 
+  // Renderiza — tickGame cuida de avançar no momento certo pelo clock
   showResultScreen(q, answer, data);
-
-  // Aguarda 8s mostrando resultado, depois libera o tickGame
-  await new Promise(r => setTimeout(r, 8000));
-  showingResult = false;
 }
 
 async function submitVote() {
